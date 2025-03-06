@@ -126,8 +126,6 @@ export const CXProject = Project.create({
 	name: '超星学习通',
 	domains: [
 		'chaoxing.com',
-		'edu.cn',
-		'org.cn',
 		// 学银在线
 		'xueyinonline.com',
 		/** 其他域名 */
@@ -209,7 +207,7 @@ export const CXProject = Project.create({
 						['job', '完成后跳转未完成任务点（试验功能）', '如果未找到任务点，则会直接结束脚本运行，目前处于试验阶段。'],
 						['manually', '完成后暂停，等待手动跳转', '适用于自己手动运行']
 					],
-					defaultValue: 'next' as 'next' | 'job' | 'manually'
+					defaultValue: 'manually' as 'next' | 'job' | 'manually'
 				},
 				restudy: {
 					label: '复习模式',

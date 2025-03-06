@@ -2,6 +2,7 @@ import { Project } from 'easy-us';
 import { CommonProject } from './projects/common';
 import { ZHSProject } from './projects/zhs';
 import { CXProject } from './projects/cx';
+import { ULearningProject } from './projects/uxy';
 import { BackgroundProject } from './projects/background';
 import { IcveMoocProject } from './projects/icve';
 import { ZJYProject } from './projects/zjy';
@@ -15,6 +16,7 @@ export { start, $elements, $store } from 'easy-us';
 export { BackgroundProject } from './projects/background';
 export { CommonProject } from './projects/common';
 export { ZHSProject } from './projects/zhs';
+export { ULearningProject } from './projects/uxy';
 export { CXProject } from './projects/cx';
 export { ZJYProject } from './projects/zjy';
 export { IcveMoocProject } from './projects/icve';
@@ -22,5 +24,14 @@ export { ICourseProject } from './projects/icourse';
 export { RenderScript } from './render';
 
 export function definedProjects(): Project[] {
-	return [ZHSProject, CXProject, IcveMoocProject, ZJYProject, ICourseProject, CommonProject, BackgroundProject];
+	return [
+		ZHSProject,
+		CXProject,
+		IcveMoocProject,
+		ZJYProject,
+		ICourseProject,
+		ULearningProject,
+		CommonProject,
+		BackgroundProject
+	];
 }

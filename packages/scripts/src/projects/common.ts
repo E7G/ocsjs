@@ -59,6 +59,9 @@ const state = {
 			},
 			icourse: (index: number) => {
 				document.querySelectorAll<HTMLElement>('.u-questionItem').item(index)?.scrollIntoView({ behavior: 'smooth' });
+			},
+			uxy: (index: number) => {
+				document.querySelectorAll<HTMLElement>('.question-item').item(index)?.scrollIntoView({ behavior: 'smooth' });
 			}
 		}
 	},
@@ -104,13 +107,74 @@ export const CommonProject = Project.create({
 				notes: {
 					defaultValue: $ui.notes([
 						'✨鼠标移动到按钮或者输入框，可以看到提示！',
-						'想要自动答题必须设置 “题库配置” ',
+						'想要自动答题必须设置 "题库配置" ',
 						'设置后进入章节测试，作业，考试页面即可自动答题。'
 					]).outerHTML
 				},
+				notification: {
+					label: '系统通知',
+					attrs: {
+						title:
+							'允许脚本发送系统通知，只有重要事情发生时会发送系统通知，尽量避免用户受到骚扰（在电脑屏幕右侧显示通知弹窗，例如脚本执行完毕，图形验证码，版本更新等通知）。'
+					},
+					tag: 'select',
+					defaultValue: 'only-notify' as 'only-notify' | 'notify-and-voice' | 'all' | 'no-notify',
+					options: [
+						['only-notify', '只显示右下角通知'],
+						['notify-and-voice', '通知以及提示音（叮的一声）'],
+						['all', '通知，提示音，以及任务栏闪烁提示'],
+						['no-notify', '关闭系统通知']
+					]
+				},
+				enableQuestionCaches: {
+					label: '题库缓存功能',
+					defaultValue: false,
+					attrs: { type: 'checkbox', title: '详情请前往 通用-其他应用-题库拓展查看。' }
+				},
 				answererWrappers: {
 					separator: '自动答题设置',
-					defaultValue: [] as AnswererWrapper[]
+					defaultValue: [
+						{
+							name: '自定义题库local',
+							url: 'http://localhost:8060/adapter-service/search?use=local',
+							method: 'post',
+							type: 'GM_xmlhttpRequest',
+							contentType: 'json',
+							headers: {},
+							data: {
+								// eslint-disable-next-line no-template-curly-in-string
+								question: '${title}',
+								options: {
+									handler: "return (env)=>env.options?.split('\\n')"
+								},
+								type: {
+									handler:
+										" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
+								}
+							},
+							handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
+						},
+						{
+							name: '自定义题库免费接口',
+							url: 'http://localhost:8060/adapter-service/search',
+							method: 'post',
+							type: 'GM_xmlhttpRequest',
+							contentType: 'json',
+							headers: {},
+							data: {
+								// eslint-disable-next-line no-template-curly-in-string
+								question: '${title}',
+								options: {
+									handler: "return (env)=>env.options?.split('\\n')"
+								},
+								type: {
+									handler:
+										" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
+								}
+							},
+							handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
+						}
+					] as AnswererWrapper[]
 				},
 				/**
 				 * 禁用的题库
@@ -230,6 +294,7 @@ export const CommonProject = Project.create({
 
 													const value = textarea.value;
 
+<<<<<<< HEAD
 													if (!value) {
 														$modal.alert({
 															content: h('div', '不能为空！')
@@ -349,6 +414,79 @@ export const CommonProject = Project.create({
 															onConfirm: () => {
 																if ($gm.isInGMContext()) {
 																	top?.document.location.reload();
+=======
+													if (value) {
+														// if (
+														// 	value.includes('adapter-service/search') &&
+														// 	(select.value === 'TikuAdapter') === false
+														// ) {
+														// 	$modal.alert({
+														// 		content: h('div', [
+														// 			'检测到您可能正在使用 ',
+														// 			h(
+														// 				'a',
+														// 				{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
+														// 				'TikuAdapter 题库'
+														// 			),
+														// 			'，但是您选择的解析器不是 TikuAdapter，请选择 TikuAdapter 解析器，并填写接口地址即可，例如：http://localhost:8060/adapter-service/search，或者忽略此警告。'
+														// 		]),
+														// 		confirmButtonText: '切换至 TikuAdapter 解析器，并识别接口地址',
+														// 		onConfirm() {
+														// 			const origin =
+														// 				textarea.value.match(/http:\/\/(.+)\/adapter-service\/search/)?.[1] || '';
+														// 			textarea.value = `http://${origin}/adapter-service/search`;
+														// 			select.value = 'TikuAdapter';
+														// 		}
+														// 	});
+														// 	return;
+														// }
+
+														try {
+															const awsResult: AnswererWrapper[] = [];
+															if (select.value === 'TikuAdapter') {
+																if (value.startsWith('http') === false) {
+																	$modal.alert({
+																		content: h('div', [
+																			'格式错误，TikuAdapter解析器只能解析 url 链接，请重新输入！或者查看：',
+																			h(
+																				'a',
+																				{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
+																				'https://github.com/DokiDoki1103/tikuAdapter#readme'
+																			)
+																		])
+																	});
+																	return;
+																}
+																select.value = '默认';
+																awsResult.push({
+																	name: 'TikuAdapter题库',
+																	url: value,
+																	homepage: 'https://github.com/DokiDoki1103/tikuAdapter',
+																	method: 'post',
+																	type: 'GM_xmlhttpRequest',
+																	contentType: 'json',
+																	headers: {},
+																	data: {
+																		// eslint-disable-next-line no-template-curly-in-string
+																		question: '${title}',
+																		options: {
+																			handler: "return (env)=>env.options?.split('\\n')"
+																		},
+																		type: {
+																			handler:
+																				" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
+																		}
+																	},
+																	handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
+																});
+															} else {
+																const contents = value
+																	.split('###')
+																	.map((i) => i.trim())
+																	.filter(Boolean);
+																for (const content of contents) {
+																	awsResult.push(...(await AnswerWrapperParser.from(content)));
+>>>>>>> 3fcfc7e (添加优学院自动答题支持)
 																}
 															},
 															...($gm.isInGMContext()
@@ -419,7 +557,7 @@ export const CommonProject = Project.create({
 				upload: {
 					label: '答题完成后',
 					tag: 'select',
-					defaultValue: 80 as WorkUploadType,
+					defaultValue: 100 as WorkUploadType,
 					options: [
 						['save', '自动保存', '完成后自动保存答案, 注意如果你开启了随机作答, 有可能分辨不出答案是否正确。'],
 						['nomove', '不保存也不提交', '等待时间过后将会自动下一节, 适合在测试脚本时使用。'],
@@ -521,7 +659,7 @@ export const CommonProject = Project.create({
 					attrs: {
 						title: "分隔答案的符号，例如：答案1#答案2#答案3，分隔符为 #， 使用英文逗号进行隔开 : ',' "
 					},
-					defaultValue: ['===', '#', '---', '###', '|', ';', '；'].join(','),
+					defaultValue: ['===', '#', '---', '###', '|'].join(','),
 					onload(el) {
 						el.addEventListener('change', () => {
 							if (String(el.value).trim() === '') {
