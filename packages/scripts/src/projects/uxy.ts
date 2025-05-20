@@ -1,12 +1,10 @@
-import { OCSWorker, defaultAnswerWrapperHandler,$,
-	defaultQuestionResolve } from '@ocsjs/core';
-import { Project, Script, $el,
-	$$el,$message,$ui, $modal } from 'easy-us';
+import { OCSWorker, defaultAnswerWrapperHandler, $, defaultQuestionResolve } from '@ocsjs/core';
+import { Project, Script, $el, $$el, $message, $ui } from 'easy-us';
 import { CommonWorkOptions, playMedia } from '../utils';
 import { CommonProject } from './common';
-import { commonWork, simplifyWorkResult,optimizationElementWithImage } from '../utils/work';
-import { workNotes} from '../utils/configs';
-import { $console } from './background';
+import { commonWork, simplifyWorkResult, optimizationElementWithImage } from '../utils/work';
+import { workNotes } from '../utils/configs';
+// import { $console } from './background';
 
 const workPages: [string, string][] = [
 	['作业页面', 'quiz'],
@@ -14,31 +12,23 @@ const workPages: [string, string][] = [
 ];
 
 const isWork = () => {
-	return (
-		window.location.href.includes('homework')
-	);
+	return window.location.href.includes('homework');
 };
-const isExam = () => {
-	return (
-		window.location.href.includes('exam')
-	);
-};
+// const isExam = () => {
+// 	return window.location.href.includes('exam');
+// };
 
 export const ULearningProject = Project.create({
 	name: '优学院',
 	domains: ['ulearning.cn', 'ulearning.com.cn'],
 	scripts: {
-
 		study: new Script({
 			name: '📚 课程学习',
 			matches: [['视频学习', /learnCourse\.html/]],
 			configs: {
 				notes: {
-					defaultValue: $ui.notes([
-						'可用来看优学院视频而不用手动点击',
-						'基于OCS框架重构',
-						'未完善，暂时无法使用'
-					]).outerHTML
+					defaultValue: $ui.notes(['可用来看优学院视频而不用手动点击', '基于OCS框架重构', '未完善，暂时无法使用'])
+						.outerHTML
 				},
 				playbackRate: {
 					label: '播放倍速',
@@ -62,38 +52,37 @@ export const ULearningProject = Project.create({
 				}
 			},
 			async oncomplete() {
-				return;
 				const player = await waitForVideoPlayer();
 				const speedControl = new SpeedController(this.cfg.playbackRate);
-    
-    // 应用音量设置
-    player.volume = this.cfg.volume;
-    
-    // 监听倍速配置变化
-    this.onConfigChange('playbackRate', (rate) => {
-        speedControl.applyTo(player);
-    });
-    
-    // 监听音量配置变化
-    this.onConfigChange('volume', (vol) => {
-        player.volume = vol;
-    });
-    
-    // 处理暂停后自动恢复
-    player.addEventListener('pause', async () => {
-        if (!player.ended) {
-            await $.sleep(1000);
-            playMedia(() => player.play());
-        }
-    });
 
-	player.addEventListener('ended', () => {
-		$message.success('视频播放完毕');
-		navigateToNext();	
-	})
-    
-    speedControl.applyTo(player);
-    playMedia(() => player.play());
+				// 应用音量设置
+				player.volume = this.cfg.volume;
+
+				// 监听倍速配置变化
+				this.onConfigChange('playbackRate', (rate) => {
+					speedControl.applyTo(player);
+				});
+
+				// 监听音量配置变化
+				this.onConfigChange('volume', (vol) => {
+					player.volume = vol;
+				});
+
+				// 处理暂停后自动恢复
+				player.addEventListener('pause', async () => {
+					if (!player.ended) {
+						await $.sleep(1000);
+						playMedia(() => player.play());
+					}
+				});
+
+				player.addEventListener('ended', () => {
+					$message.success('视频播放完毕');
+					navigateToNext();
+				});
+
+				speedControl.applyTo(player);
+				playMedia(() => player.play());
 			}
 		}),
 
@@ -102,14 +91,13 @@ export const ULearningProject = Project.create({
 			matches: workPages,
 			configs: { notes: workNotes },
 			async oncomplete() {
-							commonWork(this, {
-								workerProvider: (opt) => workOrExam(isWork() ? 'work' : 'exam', opt)
-							});
-					}
+				commonWork(this, {
+					workerProvider: (opt) => workOrExam(isWork() ? 'work' : 'exam', opt)
+				});
+			}
 		})
 	}
 });
-
 
 function workOrExam(
 	type: 'work' | 'exam',
@@ -132,13 +120,13 @@ function workOrExam(
 		elements: {
 			title: '.question-title',
 			/**
-			* 兼容各种选项
-			*
-			* ul li .after 单选多选
-			* ul li label:not(.after) 判断题
-			* ul li textarea 填空题
-			*/
-		   options: '.ul-radio__label, ul label span:last-child, ul label span:last-child',
+			 * 兼容各种选项
+			 *
+			 * ul li .after 单选多选
+			 * ul li label:not(.after) 判断题
+			 * ul li textarea 填空题
+			 */
+			options: '.ul-radio__label,.ul-checkbox__label',
 			type: '.gray'
 		},
 		thread: thread ?? 1,
@@ -169,7 +157,7 @@ function workOrExam(
 					return defaultAnswerWrapperHandler(answererWrappers, {
 						type: (typeInput ? getQuestionType(typeInput.innerText) : undefined) || 'unknown',
 						title,
-						options: ctx.elements.options.map((o) => o.innerText/* getOptionText(o) */).join('\n')
+						options: ctx.elements.options.map((o) => o.innerText /* getOptionText(o) */).join('\n')
 					});
 				});
 			} else {
@@ -196,11 +184,23 @@ function workOrExam(
 
 						// 如果存在已经选择的选项
 						if (type === 'judgement' || type === 'single' || type === 'multiple') {
-							
 							if (option?.parentElement && $$el('[class*="is-checked"]', option.parentElement).length === 0) {
 								option.click();
 								await $.sleep(500);
 							}
+							// 处理单选和多选的通用逻辑
+							// if (type === 'single' || type === 'multiple') {
+							// 	const input = option?.querySelector('input[type="radio"], input[type="checkbox"]');
+							// 	if (input && !(input as HTMLInputElement).checked) {
+							// 		// 使用更精确的点击目标
+							// 		const label = option?.querySelector('label');
+							// 		if (label) {
+							// 			label.click();
+							// 			// 增加选项间间隔时间
+							// 			await $.sleep(300);
+							// 		}
+							// 	}
+							// }
 						} else if (type === 'completion' && answer.trim()) {
 							const text = option?.querySelector('textarea');
 							const textareaFrame = option?.querySelector('iframe');
@@ -219,7 +219,6 @@ function workOrExam(
 					}
 				);
 			}
-			
 
 			return { finish: false };
 		},
@@ -232,8 +231,7 @@ function workOrExam(
 				CommonProject.scripts.apps.methods.addQuestionCacheFromWorkResult(simplifyWorkResult([curr], titleTransform));
 			}
 			CommonProject.scripts.workResults.methods.updateWorkStateByResults(res);
-		}
-		,
+		},
 		async onElementSearched(elements) {
 			const typeInput = elements.type[0] as HTMLInputElement;
 			const type = typeInput ? getQuestionType(typeInput.innerText) : undefined;
@@ -241,14 +239,12 @@ function workOrExam(
 			/** 判断题转换成文字，以便于答题程序判断 */
 			if (type === 'judgement') {
 				elements.options.forEach((option, index) => {
-					if(option.innerHTML.includes('icon-zhengque')){
+					if (option.innerHTML.includes('icon-zhengque')) {
 						option.innerText = '正确';
-					}
-					else if(option.innerHTML.includes('icon-cuowu1')){
+					} else if (option.innerHTML.includes('icon-cuowu1')) {
 						option.innerText = '错误';
 					}
 				});
-				
 			}
 		}
 	});
@@ -265,7 +261,6 @@ function workOrExam(
 
 	return worker;
 }
-
 
 // 视频控制相关
 class SpeedController {
@@ -292,24 +287,25 @@ async function waitForVideoPlayer() {
 	});
 }
 
+// 增强下一页按钮判断逻辑
 async function navigateToNext() {
-    // 点击下一页按钮
 	const nextButton = document.querySelector<HTMLDivElement>('.next-page-btn');
-    if (nextButton) {
-		if(nextButton.innerText.includes("下一页")	){
+	if (nextButton) {
+		// 使用规范化文本比较
+		const btnText = nextButton.innerText.replace(/\s/g, '').toLowerCase();
+		if (btnText.includes('下一页') || btnText.includes('next')) {
 			$message.success({ content: '下一页', duration: 0 });
 			nextButton.click();
+			await $.sleep(1000); // 增加页面加载等待时间
 			return true;
-		}
-        else{
+		} else {
 			// 完成全部任务
 			$message.success({ content: '所有任务已完成', duration: 0 });
 			return false;
-        }
-    }
-	//document.querySelector<HTMLDivElement>(".next-page-btn")?.click();
+		}
+	}
+	// document.querySelector<HTMLDivElement>(".next-page-btn")?.click();
 }
-
 
 /**
  * 优学院题目类型映射（包含匹配）：
@@ -330,8 +326,7 @@ function getQuestionType(
 		? 'multiple'
 		: val.includes('判断题')
 		? 'judgement'
-		: ['简答题', '填空题', '名词解释', '论述题', '计算题', '其他题', '分录题', '资料题']
-			.some(t => val.includes(t))
+		: ['简答题', '填空题', '名词解释', '论述题', '计算题', '其他题', '分录题', '资料题'].some((t) => val.includes(t))
 		? 'completion'
 		: val.includes('连线题')
 		? 'line'
