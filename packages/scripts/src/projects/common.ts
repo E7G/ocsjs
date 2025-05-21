@@ -294,34 +294,34 @@ export const CommonProject = Project.create({
 
 													const value = textarea.value;
 
-<<<<<<< HEAD
 													if (!value) {
 														$modal.alert({
 															content: h('div', '不能为空！')
 														});
 														return;
 													}
-													if (value.includes('adapter-service/search') && (select.value === 'TikuAdapter') === false) {
-														$modal.alert({
-															content: h('div', [
-																'检测到您可能正在使用 ',
-																h(
-																	'a',
-																	{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
-																	'TikuAdapter 题库'
-																),
-																'，但是您选择的解析器不是 TikuAdapter，请选择 TikuAdapter 解析器，并填写接口地址即可，例如：http://localhost:8060/adapter-service/search，或者忽略此警告。'
-															]),
-															confirmButtonText: '切换至 TikuAdapter 解析器，并识别接口地址',
-															onConfirm() {
-																const origin =
-																	textarea.value.match(/http:\/\/(.+)\/adapter-service\/search/)?.[1] || '';
-																textarea.value = `http://${origin}/adapter-service/search`;
-																select.value = 'TikuAdapter';
-															}
-														});
-														return;
-													}
+													// 注释掉TikuAdapter检查逻辑，使用上游版本
+													// if (value.includes('adapter-service/search') && (select.value === 'TikuAdapter') === false) {
+													// 	$modal.alert({
+													// 		content: h('div', [
+													// 			'检测到您可能正在使用 ',
+													// 			h(
+													// 				'a',
+													// 				{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
+													// 				'TikuAdapter 题库'
+													// 			),
+													// 			'，但是您选择的解析器不是 TikuAdapter，请选择 TikuAdapter 解析器，并填写接口地址即可，例如：http://localhost:8060/adapter-service/search，或者忽略此警告。'
+													// 		]),
+													// 		confirmButtonText: '切换至 TikuAdapter 解析器，并识别接口地址',
+													// 		onConfirm() {
+													// 			const origin =
+													// 				textarea.value.match(/http:\/\/(.+)\/adapter-service\/search/)?.[1] || '';
+													// 			textarea.value = `http://${origin}/adapter-service/search`;
+													// 			select.value = 'TikuAdapter';
+													// 		}
+													// 	});
+													// 	return;
+													// }
 
 													try {
 														let awsResult: AnswererWrapper[] = [];
@@ -356,7 +356,7 @@ export const CommonProject = Project.create({
 																	},
 																	type: {
 																		handler:
-																			" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 3 : env.type === 'judgement' ? 4 : undefined"
+																			" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
 																	}
 																},
 																handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
@@ -414,79 +414,6 @@ export const CommonProject = Project.create({
 															onConfirm: () => {
 																if ($gm.isInGMContext()) {
 																	top?.document.location.reload();
-=======
-													if (value) {
-														// if (
-														// 	value.includes('adapter-service/search') &&
-														// 	(select.value === 'TikuAdapter') === false
-														// ) {
-														// 	$modal.alert({
-														// 		content: h('div', [
-														// 			'检测到您可能正在使用 ',
-														// 			h(
-														// 				'a',
-														// 				{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
-														// 				'TikuAdapter 题库'
-														// 			),
-														// 			'，但是您选择的解析器不是 TikuAdapter，请选择 TikuAdapter 解析器，并填写接口地址即可，例如：http://localhost:8060/adapter-service/search，或者忽略此警告。'
-														// 		]),
-														// 		confirmButtonText: '切换至 TikuAdapter 解析器，并识别接口地址',
-														// 		onConfirm() {
-														// 			const origin =
-														// 				textarea.value.match(/http:\/\/(.+)\/adapter-service\/search/)?.[1] || '';
-														// 			textarea.value = `http://${origin}/adapter-service/search`;
-														// 			select.value = 'TikuAdapter';
-														// 		}
-														// 	});
-														// 	return;
-														// }
-
-														try {
-															const awsResult: AnswererWrapper[] = [];
-															if (select.value === 'TikuAdapter') {
-																if (value.startsWith('http') === false) {
-																	$modal.alert({
-																		content: h('div', [
-																			'格式错误，TikuAdapter解析器只能解析 url 链接，请重新输入！或者查看：',
-																			h(
-																				'a',
-																				{ href: 'https://github.com/DokiDoki1103/tikuAdapter#readme' },
-																				'https://github.com/DokiDoki1103/tikuAdapter#readme'
-																			)
-																		])
-																	});
-																	return;
-																}
-																select.value = '默认';
-																awsResult.push({
-																	name: 'TikuAdapter题库',
-																	url: value,
-																	homepage: 'https://github.com/DokiDoki1103/tikuAdapter',
-																	method: 'post',
-																	type: 'GM_xmlhttpRequest',
-																	contentType: 'json',
-																	headers: {},
-																	data: {
-																		// eslint-disable-next-line no-template-curly-in-string
-																		question: '${title}',
-																		options: {
-																			handler: "return (env)=>env.options?.split('\\n')"
-																		},
-																		type: {
-																			handler:
-																				" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
-																		}
-																	},
-																	handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
-																});
-															} else {
-																const contents = value
-																	.split('###')
-																	.map((i) => i.trim())
-																	.filter(Boolean);
-																for (const content of contents) {
-																	awsResult.push(...(await AnswerWrapperParser.from(content)));
->>>>>>> 3fcfc7e (添加优学院自动答题支持)
 																}
 															},
 															...($gm.isInGMContext()
@@ -738,7 +665,11 @@ export const CommonProject = Project.create({
 							'允许脚本发送系统通知，只有重要事情发生时会发送系统通知，尽量避免用户受到骚扰（在电脑屏幕右侧显示通知弹窗，例如脚本执行完毕，图形验证码，版本更新等通知）。'
 					},
 					tag: 'select',
+<<<<<<< HEAD
 					defaultValue: 'only-notify' as 'only-notify' | 'notify-and-voice' | 'all' | 'no-notify',
+=======
+					defaultValue: 'exact' as AnswerMatchMode,
+>>>>>>> 6a9a712 (Update common.ts)
 					options: [
 						['only-notify', '只显示右下角通知'],
 						['notify-and-voice', '通知以及提示音（叮的一声）'],
