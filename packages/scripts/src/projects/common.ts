@@ -466,7 +466,7 @@ export const CommonProject = Project.create({
 				upload: {
 					label: '答题完成后',
 					tag: 'select',
-					defaultValue: 100 as WorkUploadType,
+					defaultValue: 'save' as WorkUploadType,
 					options: [
 						['save', '自动保存', '完成后自动保存答案, 注意如果你开启了随机作答, 有可能分辨不出答案是否正确。'],
 						['nomove', '不保存也不提交', '等待时间过后将会自动下一节, 适合在测试脚本时使用。'],
