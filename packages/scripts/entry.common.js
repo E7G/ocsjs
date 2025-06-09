@@ -45,11 +45,9 @@ const infos = GM_info;
 			renderScript: RenderScript,
 			styles: [STYLE],
 			defaultPanelName: CommonProject.scripts.guide.namespace,
-			title: `OCS-全域名通用版-${infos.script.version}`
+			title: `OCS-with-uxy-全域名通用版-${infos.script.version}`
 		},
 		updatePage:
-			GM_info.scriptHandler === 'Tampermonkey'
-				? 'https://greasyfork.org/zh-CN/scripts/481438'
-				: 'https://scriptcat.org/zh-CN/script-show-page/1398'
+			GM_info.scriptHandler === 'Tampermonkey' ? 'https://github.com/E7G/ocsjs' : 'https://github.com/E7G/ocsjs'
 	});
 })();

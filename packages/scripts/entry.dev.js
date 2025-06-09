@@ -45,8 +45,8 @@ const infos = GM_info;
 			renderScript: RenderScript,
 			styles: [GM_getResourceText('STYLE')],
 			defaultPanelName: CommonProject.scripts.guide.namespace,
-			title: `OCS DEV-${infos.script.version}`
+			title: `OCS DEV-with-uxy-${infos.script.version}`
 		},
-		updatePage: 'https://docs.ocsjs.com/docs/update'
+		updatePage: 'https://github.com/E7G/ocsjs'
 	});
 })();

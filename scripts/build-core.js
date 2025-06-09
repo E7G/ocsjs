@@ -70,19 +70,19 @@ async function createUserJs(cb) {
 				gap: '\t'.repeat(4)
 			},
 			metadata: {
-				name: 'OCS 网课助手',
+				name: 'OCS 网课助手-with-uxy',
 				version: version,
 				description: [
-					'OCS(online-course-script) 网课助手，官网 https://docs.ocsjs.com ，专注于帮助大学生从网课中释放出来',
+					'OCS(online-course-script) 网课助手-with-uxy，官网 https://docs.ocsjs.com ，专注于帮助大学生从网课中释放出来',
 					'让自己的时间把握在自己的手中，拥有人性化的操作页面，流畅的步骤提示，支持 ',
 					projectList,
 					'等网课的学习，作业。具体的功能请查看脚本悬浮窗中的教程页面。'
 				].join(' '),
 				author: 'enncy',
 				license: 'MIT',
-				namespace: 'https://enncy.cn',
+				namespace: 'https://github.com/E7G',
 				homepage: 'https://docs.ocsjs.com',
-				source: 'https://github.com/ocsjs/ocsjs',
+				source: 'https://github.com/E7G/ocsjs',
 				icon: 'https://cdn.ocsjs.com/logo.png',
 				connect: ['enncy.cn', 'icodef.com', 'ocsjs.com', 'localhost', '127.0.0.1'],
 				match: matchMetadata,
