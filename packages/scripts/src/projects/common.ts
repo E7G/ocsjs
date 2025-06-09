@@ -152,27 +152,8 @@ export const CommonProject = Project.create({
 										" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
 								}
 							},
-							handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
-						},
-						{
-							name: '自定义题库免费接口',
-							url: 'http://localhost:8060/adapter-service/search',
-							method: 'post',
-							type: 'GM_xmlhttpRequest',
-							contentType: 'json',
-							headers: {},
-							data: {
-								// eslint-disable-next-line no-template-curly-in-string
-								question: '${title}',
-								options: {
-									handler: "return (env)=>env.options?.split('\\n')"
-								},
-								type: {
-									handler:
-										" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
-								}
-							},
-							handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
+							handler:
+								"return (res) => { const answers = res.answer?.allAnswer?.filter(a => Array.isArray(a)) || []; return answers.map(i => [res.question, i.join('#')]); }"
 						}
 					] as AnswererWrapper[]
 				},
@@ -359,7 +340,8 @@ export const CommonProject = Project.create({
 																			" return (env)=> env.type === 'single' ? 0 : env.type === 'multiple' ? 1 : env.type === 'completion' ? 2 : env.type === 'judgement' ? 3 : undefined"
 																	}
 																},
-																handler: "return (res)=>res.answer.allAnswer.map(i=>([res.question,i.join('#')]))"
+																handler:
+																	"return (res) => { const answers = res.answer?.allAnswer?.filter(a => Array.isArray(a)) || []; return answers.map(i => [res.question, i.join('#')]); }"
 															});
 														} else {
 															const contents = value
