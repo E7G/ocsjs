@@ -639,26 +639,6 @@ export const CommonProject = Project.create({
 						});
 					}
 				},
-				notification: {
-					separator: '其他设置',
-					label: '系统通知',
-					attrs: {
-						title:
-							'允许脚本发送系统通知，只有重要事情发生时会发送系统通知，尽量避免用户受到骚扰（在电脑屏幕右侧显示通知弹窗，例如脚本执行完毕，图形验证码，版本更新等通知）。'
-					},
-					tag: 'select',
-<<<<<<< HEAD
-					defaultValue: 'only-notify' as 'only-notify' | 'notify-and-voice' | 'all' | 'no-notify',
-=======
-					defaultValue: 'exact' as AnswerMatchMode,
->>>>>>> 6a9a712 (Update common.ts)
-					options: [
-						['only-notify', '只显示右下角通知'],
-						['notify-and-voice', '通知以及提示音（叮的一声）'],
-						['all', '通知，提示音，以及任务栏闪烁提示'],
-						['no-notify', '关闭系统通知']
-					]
-				},
 				notificationWebhooks: {
 					label: '通知回调',
 					attrs: {
@@ -668,11 +648,6 @@ export const CommonProject = Project.create({
 					},
 					tag: 'textarea',
 					defaultValue: ''
-				},
-				enableQuestionCaches: {
-					label: '题库缓存功能',
-					defaultValue: true,
-					attrs: { type: 'checkbox', title: '详情请前往 通用-其他应用-题库拓展查看。' }
 				}
 			},
 			methods() {
