@@ -1,14 +1,11 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
-
-name: Userscript Auto Releases
+name: Manual Release
 
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version (leave empty to use package.json version)'
-        required: false
+        description: 'Release version (e.g., 4.12.3)'
+        required: true
         type: string
       prerelease:
         description: 'Is this a prerelease?'
@@ -17,36 +14,51 @@ on:
         type: boolean
 
 jobs:
-  build:
+  prepare:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    strategy:
-      matrix:
-        node-version: [18.x]
+      packages: write
+    outputs:
+      release_tag: ${{ steps.set_tag.outputs.release_tag }}
+      release_name: ${{ steps.set_tag.outputs.release_name }}
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Set release tag
+        id: set_tag
+        run: |
+          TAG="v${{ github.event.inputs.version }}"
+          echo "release_tag=$TAG" >> $GITHUB_OUTPUT
+          echo "release_name=Release ${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "Release tag will be: $TAG"
+
+  build-and-release:
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: '18.x'
+          cache: 'npm'
+          
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+          
       - name: Setup env
         run: |
           echo 'BUILD_PATH="../release"' > ./scripts/.env 
           echo 'VITE_BUILD_PATH="../../release"' > ./packages/core/.env
           echo 'VITE_BUILD_PATH="../../release"' > ./packages/scripts/.env
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
+          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v${{ github.event.inputs.version }}/" >> $GITHUB_ENV
           
-          # Use provided version or get from package.json
-          if [ -n "${{ github.event.inputs.version }}" ]; then
-            VERSION="${{ github.event.inputs.version }}"
-          else
-            VERSION=$(jq -r .version package.json)
-          fi
-          
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v$VERSION/" >> $GITHUB_ENV
-          echo "TAG_NAME=v$VERSION" >> $GITHUB_ENV
       - name: Install Dependencies
         run: |
           npm install pnpm -g
@@ -55,6 +67,7 @@ jobs:
           pnpm install
           cd ../../
           npm run tsc
+          
       - name: Build ocs scripts
         run: npm run build
 
@@ -81,6 +94,7 @@ jobs:
             echo "CHANGELOG_CURRENT.md file not found"
           fi
         shell: bash
+        
       - name: Generate release.txt
         if: runner.os == 'Linux'
         run: |
@@ -107,12 +121,12 @@ jobs:
           Created at ${{ env.BUILDTIME }}.
           EOF
 
-      - name: Create release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ env.TAG_NAME }}
-          name: Release ${{ env.VERSION }}
-          bodyFile: "./release.txt"
+          tag_name: ${{ needs.prepare.outputs.release_tag }}
+          name: ${{ needs.prepare.outputs.release_name }}
+          body_path: "./release.txt"
           draft: false
           prerelease: ${{ github.event.inputs.prerelease }}
           files: |
