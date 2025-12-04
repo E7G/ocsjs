@@ -79,8 +79,8 @@ importers:
   packages/core:
     dependencies:
       easy-us:
-        specifier: ^0.0.30
-        version: 0.0.30(typescript@4.9.5)
+        specifier: ^0.0.57
+        version: 0.0.57(typescript@4.9.5)
       events:
         specifier: ^3.3.0
         version: 3.3.0
@@ -136,6 +136,9 @@ importers:
       browser-env:
         specifier: ^3.3.0
         version: 3.3.0
+      easy-us:
+        specifier: ^0.0.57
+        version: 0.0.57(typescript@4.9.5)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -1985,8 +1988,8 @@ packages:
       object.defaults: 1.1.0
     dev: true
 
-  /easy-us@0.0.30(typescript@4.9.5):
-    resolution: {integrity: sha512-ZT7ptmvvUNjhFKmvXEeo4iIWU7z6kmiuVgwiVD/BYlbnvoBM1idTumMbGZhjMSsF6pM1dBVfUq9FTqtpzURPBA==}
+  /easy-us@0.0.57(typescript@4.9.5):
+    resolution: {integrity: sha512-CqjnwuEgibyOXLOE1NPjGQLLbvtsgMRC6S+ajPULjVI8dydVSZ0CR1DsHlFRB4zEwcR/Zj/Eo0ocYuIxPZ+2tQ==}
     dependencies:
       '@rollup/plugin-typescript': 11.1.6(typescript@4.9.5)
       events: 3.3.0
@@ -5704,6 +5707,7 @@ packages:
   /source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
     engines: {node: '>=0.10.0'}
+    requiresBuild: true
 
   /source-map@0.7.4:
     resolution: {integrity: sha512-l3BikUxvPOcn5E74dZiq5BGsTb5yEwhaTSzccU6t4sDOH8NWJCstKO5QT2CvtFoK6F0saL7p9xHAqHOlCPJygA==}

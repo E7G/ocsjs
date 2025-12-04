@@ -12,17 +12,12 @@ import { $message, h, $gm, $store, Project, Script, $modal, StoreListenerType, $
 import type { AnswerMatchMode, AnswererWrapper, SearchInformation } from '@ocsjs/core';
 import { CXProject, ICourseProject, IcveMoocProject, ZHSProject, ZJYProject } from '../index';
 import { markdown } from '../utils/markdown';
-import { createQuestionTitleExtra, enableCopy } from '../utils';
+import { enableCopy } from '../utils';
 import { SearchInfosElement } from '../elements/search.infos';
 import { RenderScript } from '../render';
+import { dropdownStyle } from '../utils/configs';
 
 const TAB_WORK_RESULTS_KEY = 'common.work-results.results';
-
-const gotoHome = () => {
-	const btn = h('button', { className: 'base-style-button-secondary' }, '🏡官网教程');
-	btn.onclick = () => window.open('https://docs.ocsjs.com', '_blank');
-	return btn;
-};
 
 const state = {
 	workResult: {
@@ -51,14 +46,23 @@ const state = {
 			'zhs-fusion': (index: number) => {
 				document.querySelectorAll<HTMLElement>('.right-box .list .item').item(index)?.click();
 			},
+			'zhs-hike': (index: number) => {
+				document.querySelectorAll<HTMLElement>('.q_main_right .card_ul .card_li').item(index)?.click();
+			},
 			icve: (index: number) => {
 				document.querySelectorAll<HTMLElement>(`.sheet_nums [id*="sheetSeq"]`).item(index)?.click();
 			},
 			zjy: (index: number) => {
-				document.querySelectorAll<HTMLElement>('.subjectDet').item(index)?.scrollIntoView({ behavior: 'smooth' });
+				document
+					.querySelectorAll<HTMLElement>('.subjectDet')
+					.item(index)
+					?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			},
 			icourse: (index: number) => {
-				document.querySelectorAll<HTMLElement>('.u-questionItem').item(index)?.scrollIntoView({ behavior: 'smooth' });
+				document
+					.querySelectorAll<HTMLElement>('.u-questionItem,[class*=questionBody]')
+					.item(index)
+					?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			},
 			uxy: (index: number) => {
 				document.querySelectorAll<HTMLElement>('.question-item').item(index)?.scrollIntoView({ behavior: 'smooth' });
@@ -75,28 +79,31 @@ const state = {
 /**
  * 题库缓存类型
  */
-type QuestionCache = { title: string; answer: string; from: string; homepage: string };
+type QuestionCache = { title: string; answer: string; from: string; homepage: string; ai?: boolean };
 
 export const CommonProject = Project.create({
 	name: '通用',
 	domains: [],
 	scripts: {
 		guide: new Script({
-			name: '🏠 脚本首页',
+			name: '🏠 使用教程',
 			matches: [['所有页面', /.*/]],
 			namespace: 'common.guide',
+			configs: {
+				notes: {
+					defaultValue: $ui.notes([
+						'打开任意网课平台，进入视频、作业页面等待脚本运行，',
+						'任何疑问请查看上方交流群，进群后带截图进行反馈。',
+						'温馨提示: ',
+						'⚠️ 禁止与其他脚本一起使用，否则会不兼容导致无法运行！',
+						'⚠️ 禁止最小化浏览器、切屏，否则可能导致脚本无法运行！'
+					]).outerHTML
+				}
+			},
 			onrender({ panel }) {
 				const guide = createGuide();
-
-				const contactUs = h('button', { className: 'base-style-button-secondary' }, '🗨️交流群');
-				contactUs.onclick = () => window.open('https://docs.ocsjs.com/docs/about#交流方式', '_blank');
-
-				const changeLog = h('button', { className: 'base-style-button-secondary' }, '📄查看更新日志');
-				changeLog.onclick = () => CommonProject.scripts.apps.methods.showChangelog();
-
-				changeLog.style.marginBottom = '12px';
 				guide.style.width = '480px';
-				panel.body.replaceChildren(h('div', { className: 'card' }, [gotoHome(), contactUs, changeLog]), guide);
+				panel.body.replaceChildren(guide);
 			}
 		}),
 		settings: new Script({
@@ -186,7 +193,7 @@ export const CommonProject = Project.create({
 								{
 									className: 'modal-input',
 									style: { minHeight: '250px', width: 'calc(100% - 20px)', maxWidth: '100%' },
-									placeholder: aw.length ? '重新输入题库配置' : '输入你的题库配置...'
+									placeholder: aw.length ? '重新输入题库配置' : '输入你的题库配置...，不会请看上方填写教程'
 								},
 								aw.length === 0 ? '' : JSON.stringify(aw, null, 4)
 							);
@@ -515,7 +522,6 @@ export const CommonProject = Project.create({
 					attrs: { type: 'checkbox', title: '题库搜索不到答案时，随机填写以下任意一个文案' }
 				},
 				'randomWork-completeTexts-textarea': {
-					elementClassName: 'config-details',
 					defaultValue: ['不会', '不知道', '不清楚', '不懂', '不会写'].join('\n'),
 					label: '(仅超星)随机填空文案',
 					tag: 'textarea',
@@ -530,11 +536,24 @@ export const CommonProject = Project.create({
 					}
 				},
 				advancedSettings: {
+					...dropdownStyle,
 					defaultValue: false,
 					label: '高级设置',
 					attrs: { type: 'checkbox', title: '请谨慎使用高级设置，可能会影响答题效果，小白在未理解的情况下谨慎调整。' }
 				},
-
+				answerWrapperHandlerTimeout: {
+					showIf: 'common.settings.advancedSettings',
+					elementClassName: 'config-details',
+					label: '搜题最大耗时（秒）',
+					attrs: {
+						type: 'number',
+						min: 10,
+						step: 1,
+						max: 3 * 60,
+						title: '搜题超时时间，单位为秒，超过这个时间直接放弃，进行下一题搜索。'
+					},
+					defaultValue: 120
+				},
 				stopSecondWhenFinish: {
 					showIf: 'common.settings.advancedSettings',
 					elementClassName: 'config-details',
@@ -587,19 +606,6 @@ export const CommonProject = Project.create({
 						['similar', '相似匹配', '答案相似度达到60%以上就匹配'],
 						['exact', '精确匹配', '答案必须完全一致才匹配']
 					]
-				},
-				answerWrapperHandlerTimeout: {
-					showIf: 'common.settings.advancedSettings',
-					elementClassName: 'config-details',
-					label: '搜题最大耗时（秒）',
-					attrs: {
-						type: 'number',
-						min: 10,
-						step: 1,
-						max: 60,
-						title: '搜题超时时间，单位为秒，超过这个时间直接放弃，进行下一题搜索。'
-					},
-					defaultValue: 60
 				},
 				redundanceWordsText: {
 					showIf: 'common.settings.advancedSettings',
@@ -840,12 +846,12 @@ export const CommonProject = Project.create({
 			}
 		}),
 		workResults: new Script({
-			name: '🌏 搜索结果',
+			name: '🔎 搜索结果',
 			matches: [['所有页面', /.*/]],
 			namespace: 'common.work-results',
 			configs: {
 				notes: {
-					defaultValue: $ui.notes(['点击题目序号，查看搜索结果', '每次自动答题开始前，都会清空上一次的搜索结果。'])
+					defaultValue: $ui.notes(['点击题目序号，查看搜索结果', '如果没有搜到，可能是题库没有收录该题目答案'])
 						.outerHTML
 				},
 				/**
@@ -919,6 +925,11 @@ export const CommonProject = Project.create({
 					setResults(results: SimplifyWorkResult[]) {
 						return $store.setTab(TAB_WORK_RESULTS_KEY, results);
 					},
+					async appendResults(results: SimplifyWorkResult[]) {
+						const data = (await $store.getTab(TAB_WORK_RESULTS_KEY)) || [];
+						data.push(...results);
+						return $store.setTab(TAB_WORK_RESULTS_KEY, data);
+					},
 					/**
 					 * 刷新搜索结果状态，清空搜索结果，置顶搜索结果面板
 					 */
@@ -936,11 +947,12 @@ export const CommonProject = Project.create({
 					 */
 					createWorkResultsPanel: (mount?: HTMLElement) => {
 						const container = mount || h('div');
+						container.style.width = '400px';
 						/** 记录滚动高度 */
 						let scrollPercent = 0;
 
 						/** 列表 */
-						const list = h('div');
+						const list = h('div', { className: 'work-result-list' });
 
 						/** 是否悬浮在题目上 */
 						let mouseoverIndex = -1;
@@ -985,14 +997,11 @@ export const CommonProject = Project.create({
 
 								// 渲染序号或者题目列表
 								if (this.cfg.type === 'numbers') {
-									const resultContainer = h('div', {}, (res) => {
-										res.style.width = '400px';
-									});
+									const resultContainer = h('div', { className: 'work-result-container' });
 
-									list.style.width = '400px';
 									list.style.marginBottom = '12px';
 									list.style.overflow = 'auto';
-									list.style.maxHeight = '200px';
+									list.style.maxHeight = '300px';
 
 									/** 渲染序号 */
 									const nums = results.map((result, index) => {
@@ -1026,7 +1035,6 @@ export const CommonProject = Project.create({
 								} else {
 									/** 左侧题目列表 */
 
-									list.style.width = '400px';
 									list.style.overflow = 'auto';
 									list.style.maxHeight = window.innerHeight / 2 + 'px';
 
@@ -1108,9 +1116,12 @@ export const CommonProject = Project.create({
 								}
 							} else {
 								container.replaceChildren(
-									h('div', '⚠️暂无任何搜索结果', (div) => {
-										div.style.textAlign = 'center';
-									})
+									h('div', { className: 'alert-info-wrapper' }, [
+										h('div', '暂无任何搜索结果~', (div) => {
+											div.style.marginTop = '12px';
+											div.className = 'result-info no-answer';
+										})
+									])
 								);
 							}
 
@@ -1122,13 +1133,13 @@ export const CommonProject = Project.create({
 
 							const tip = h('div', [
 								h('div', { className: 'search-infos-num' }, '1'),
-								'表示等待处理中',
+								' 表示等待处理中',
 								h('br'),
 								h('div', { className: 'search-infos-num requested' }, '1'),
-								'表示已完成搜索 ',
+								' 表示已完成搜索 ',
 								h('br'),
 								h('div', { className: 'search-infos-num finish' }, '1'),
-								'表示已搜索已答题 '
+								' 表示已搜索已答题 '
 							]);
 
 							/** 添加信息 */
@@ -1146,51 +1157,60 @@ export const CommonProject = Project.create({
 													btn.onclick = () => {
 														$modal.confirm({ content: tip, footer: undefined });
 													};
-												})
+												}),
+												$ui.tooltip(
+													h('a', '清空结果', (btn) => {
+														btn.title = '仅用于不会自动清空搜索结果的场景，例如超星非整卷预览模式';
+														btn.style.cursor = 'pointer';
+														btn.onclick = () => {
+															this.methods.clearResults();
+															const { panel, header } = CXProject.scripts.work;
+															if (panel && header) {
+																CXProject.scripts.work.onrender?.({ panel, header });
+																CommonProject.scripts.workResults.onrender?.({ panel, header });
+															}
+														};
+													})
+												)
 											],
 											{ separator: '|' }
 										)
 									],
 									(div) => {
-										div.style.marginBottom = '12px';
+										div.style.textAlign = 'center';
+										div.style.fontSize = '12px';
 									}
-								),
-
-								h('hr')
+								)
 							);
 						}, 100);
 
 						/** 渲染结果列表 */
 						const createResult = (result: SimplifyWorkResult | undefined) => {
 							if (result) {
-								const error = h('span', {}, (el) => (el.style.color = 'red'));
+								let info: HTMLElement | null = null;
 
 								if (result.requested === false && result.resolved === false) {
-									return h('div', [
-										result.question,
-										createQuestionTitleExtra(result.question),
-										h('hr'),
-										'当前题目还未开始搜索，请稍等。'
-									]);
+									info = h('div', { className: 'result-info unresolved' }, '等待搜索中... 🔍');
+								} else if (result.error) {
+									info = h('div', { className: 'result-info error' }, '❌ ' + result.error);
+								} else if (result.searchInfos.length === 0) {
+									info = h('div', { className: 'result-info no-answer' }, '❌ 题库没搜索到答案');
 								} else {
-									if (result.error) {
-										error.innerText = result.error;
-										return h('div', [result.question, createQuestionTitleExtra(result.question), h('hr'), error]);
-									} else if (result.searchInfos.length === 0) {
-										error.innerText = '此题未搜索到答案';
-										return h('div', [result.question, createQuestionTitleExtra(result.question), h('hr'), error]);
-									} else {
-										error.innerText = '此题未完成, 可能是没有匹配的选项。';
-
-										return h('div', [
-											...(result.finish ? [] : [result.resolved === false ? '正在等待答题中，请稍等。' : error]),
-											h(SearchInfosElement, {
-												infos: result.searchInfos,
-												question: result.question
-											})
-										]);
-									}
+									info = result.finish
+										? null
+										: result.resolved === false
+										? h('div', { className: 'result-info unresolved' }, '等待顺序答题中... ⏱️')
+										: h('div', { className: 'result-info error' }, '❌ 此题未完成, 可能是没有匹配的选项。');
 								}
+
+								return h('div', [
+									h('div', { className: 'alert-info-wrapper' }, [info ?? h('div')]),
+									h(SearchInfosElement, {
+										infos: result.searchInfos,
+										question: result.question,
+										type: result.type
+									})
+								]);
 							} else {
 								return h('div', 'undefined');
 							}
@@ -1430,9 +1450,9 @@ export const CommonProject = Project.create({
 						for (const cache of caches) {
 							if (cache.title.trim() === title.trim()) {
 								results.push({
-									name: `【题库缓存】${cache.from}`,
+									name: cache.from,
 									homepage: cache.homepage,
-									results: [{ answer: cache.answer, question: cache.title }]
+									results: [{ answer: cache.answer, question: cache.title, extra_data: { ai: cache.ai, cache: true } }]
 								});
 							}
 						}
@@ -1512,6 +1532,8 @@ export const CommonProject = Project.create({
 							)
 						);
 
+						const countEl = h('span', ['当前缓存数量：' + questionCaches.length]);
+
 						$modal.simple({
 							width: 800,
 							content: h('div', [
@@ -1524,10 +1546,11 @@ export const CommonProject = Project.create({
 								h('div', { className: 'card' }, [
 									$ui.space(
 										[
-											h('span', ['当前缓存数量：' + questionCaches.length]),
+											countEl,
 											$ui.button('清空题库缓存', {}, (btn) => {
 												btn.onclick = () => {
 													this.cfg.localQuestionCaches = [];
+													countEl.innerText = '当前缓存数量：0';
 													list.forEach((el) => el.remove());
 												};
 											})
@@ -1748,6 +1771,11 @@ const createGuide = () => {
 							);
 						}),
 					(ul) => {
+						ul.style.padding = '12px 24px';
+						ul.style.border = '1px solid #e1e1e1';
+						ul.style.borderRadius = '4px';
+						ul.style.maxHeight = '400px';
+						ul.style.overflow = 'auto';
 						ul.style.paddingLeft = '42px';
 					}
 				)
@@ -1755,31 +1783,46 @@ const createGuide = () => {
 		});
 	};
 
-	return h('div', { className: 'user-guide card' }, [
-		h('div', { className: 'separator', style: { padding: '12px 0px' } }, '✨ 支持的网课平台'),
-		h('div', [
-			...[CXProject, ZHSProject, ZJYProject, IcveMoocProject, ICourseProject].map((project) => {
-				const btn = h('button', { className: 'base-style-button-secondary', style: { margin: '4px' } }, [project.name]);
-				btn.onclick = () => {
-					showProjectDetails(project);
-				};
-				return btn;
-			})
+	const gotoHome = h('button', { className: 'base-style-button-secondary' }, '🏡官网教程');
+	gotoHome.onclick = () => window.open('https://docs.ocsjs.com', '_blank');
+
+	const contactUs = h('button', { className: 'base-style-button-secondary' }, '🗨️交流群');
+	contactUs.onclick = () => window.open('https://docs.ocsjs.com/docs/about#交流方式', '_blank');
+
+	const changeLog = h('button', { className: 'base-style-button-secondary' }, '📄更新日志');
+	changeLog.onclick = () => CommonProject.scripts.apps.methods.showChangelog();
+
+	const cardStyle: Partial<CSSStyleDeclaration> = {
+		border: '1px solid #eee',
+		borderRadius: '4px',
+		padding: '8px',
+		paddingTop: '4px'
+	};
+
+	return h('div', { className: 'user-guide' }, [
+		h('div', { style: cardStyle }, [
+			h('div', { style: { marginBottom: '4px', fontWeight: 'bold' } }, [
+				'✨兼容的网课平台：',
+				h('span', { className: 'secondary', style: { fontWeight: 'normal' } }, '（未适配的平台将无法运行，请等待适配）')
+			]),
+
+			h('div', [
+				...[CXProject, ZHSProject, ZJYProject, IcveMoocProject, ICourseProject].map((project) => {
+					const btn = h('button', { className: 'base-style-button-secondary', style: { margin: '4px' } }, [
+						project.name
+					]);
+					btn.onclick = () => {
+						showProjectDetails(project);
+					};
+					return btn;
+				})
+			])
 		]),
-		h('div', { className: 'separator', style: { padding: '12px 0px' } }, '📖 使用教程'),
-		$ui.notes(
-			[
-				'打开任意网课平台，等待脚本加载，',
-				'脚本加载后查看每个网课不同的使用提示。',
-				'如果不支持当前网课，则不会有相应的提示以及设置面板。',
-				[
-					'最后温馨提示: ',
-					'- 禁止与其他脚本一起使用，否则出现答案选不上或者页面卡死，无限刷新，等问题一律后果自负。',
-					'- 任何疑问请前往官网查看交流群，进入交流群后带截图进行反馈。',
-					'- 请将浏览器页面保持最大化，或者缩小窗口，不能最小化，否则可能导致脚本卡死！'
-				]
-			],
-			'ol'
-		)
+		h('div', { style: { ...cardStyle, marginTop: '12px' } }, [
+			h('div', { style: { marginBottom: '8px', fontWeight: 'bold' } }, '🌐快捷访问：'),
+			gotoHome,
+			contactUs,
+			changeLog
+		])
 	]);
 };

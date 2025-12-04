@@ -1,3 +1,301 @@
+## [4.12.3](https://github.com/ocsjs/ocsjs/compare/4.12.0...4.12.3) (2025-12-03)
+
+
+### Bug Fixes
+
+* **script:** 添加职教云资源库修复功能按钮 ([898bb3b](https://github.com/ocsjs/ocsjs/commit/898bb3b31ca18740b4cf4072369adf45150f1b3d))
+* **script:** 修复中国大学MOOC新版考试无法运行的BUG ([8f0a188](https://github.com/ocsjs/ocsjs/commit/8f0a18824ec7839a288620cf9c58cd79ec11ca57))
+
+
+### Performance Improvements
+
+* **script:** 加强智慧树作业考试自动保存警告 ([7a44eb7](https://github.com/ocsjs/ocsjs/commit/7a44eb7a70ca23547f55419fa3c7e69755c0c038))
+
+
+
+# [4.12.0](https://github.com/ocsjs/ocsjs/compare/4.11.98...4.12.0) (2025-11-27)
+
+
+### Bug Fixes
+
+* 修复超星答题时无法点击快速定位到题库配置界面问题 ([855e8e9](https://github.com/ocsjs/ocsjs/commit/855e8e92a647d886a578f658aa105f8686b26e49))
+
+
+### Features
+
+* **core:** 添加软件辅助鼠标在空闲状态下执行辅助点击等功能，防止与用户抢夺控制权 ([e5b3b1e](https://github.com/ocsjs/ocsjs/commit/e5b3b1e2527a1930452164d7cd1fda77eafaa8a8))
+* **core:** 添加自定义答题器，可自定义题目类型、答题器等参数，自由度更高 ([f1f7813](https://github.com/ocsjs/ocsjs/commit/f1f7813849f7c7211d630f5dacbe629d74fc5b02))
+* **script:** 兼容超星繁体字判断题适配 ([a81cd57](https://github.com/ocsjs/ocsjs/commit/a81cd577b1e4d9f3b42a8bed55fab4a28d151036))
+
+
+### Performance Improvements
+
+* **script:** 优化 waitForElement API ([4cf2191](https://github.com/ocsjs/ocsjs/commit/4cf2191be1d36a61d78c878cfd45e282ad7f095b))
+
+
+
+## [4.11.98](https://github.com/ocsjs/ocsjs/compare/4.11.97...4.11.98) (2025-11-24)
+
+
+### Bug Fixes
+
+* **core:** 修复上个版本无法打包的BUG ([089aaaf](https://github.com/ocsjs/ocsjs/commit/089aaafcfefcdb1ae69fde9cdb0e1ad7aed376d3))
+
+
+
+## [4.11.97](https://github.com/ocsjs/ocsjs/compare/4.11.96...4.11.97) (2025-11-24)
+
+
+### Bug Fixes
+
+* **script:** 修复高级设置无法打开的BUG ([81dbc12](https://github.com/ocsjs/ocsjs/commit/81dbc1254939a5996ff384c70a49169b7189d6b4))
+
+
+
+## [4.11.96](https://github.com/ocsjs/ocsjs/compare/4.11.95...4.11.96) (2025-11-24)
+
+
+### Bug Fixes
+
+* **script:** 修复中国大学MOOC视频题目重复答题的BUG ([7c6fd88](https://github.com/ocsjs/ocsjs/commit/7c6fd8852af43022c18e21cb6582e8388eb2587e))
+
+
+
+## [4.11.95](https://github.com/ocsjs/ocsjs/compare/4.11.94...4.11.95) (2025-11-23)
+
+
+### Performance Improvements
+
+* aPI优化 ([f988878](https://github.com/ocsjs/ocsjs/commit/f988878dfb65c5feb95aaa771efe05eaa39944c0))
+
+
+
+## [4.11.94](https://github.com/ocsjs/ocsjs/compare/4.11.86...4.11.94) (2025-11-23)
+
+
+### Bug Fixes
+
+* **common:** 题库缓存清空后弹窗数量文字归零 ([7a1ae7d](https://github.com/ocsjs/ocsjs/commit/7a1ae7d7508ba4d352fc4374aec8463a284cadf2))
+* **script:** 修复超星默认跳转模式无法自动滚动页面到当前章节列表问题 ([5600bdd](https://github.com/ocsjs/ocsjs/commit/5600bdd761d05c081c383e34b215abdfe909fcf0))
+
+
+### Features
+
+* **core:** 对移动端进行拖动面板适配 ([d253f8b](https://github.com/ocsjs/ocsjs/commit/d253f8b77bfb7006b3cb94338602476e65aa2961))
+
+
+### Performance Improvements
+
+* **core:** 优化题库搜索题目显示，可兼容长题目例如阅读理解上下文显示 ([2e62f4c](https://github.com/ocsjs/ocsjs/commit/2e62f4c35404ef8558456aa34c1309afb059d2fa))
+
+
+
+## [4.11.86](https://github.com/ocsjs/ocsjs/compare/4.11.85...4.11.86) (2025-11-20)
+
+
+### Bug Fixes
+
+* **script:** 修复上个版本类型报错 ([f472a0e](https://github.com/ocsjs/ocsjs/commit/f472a0e8ffc63b67ab03d56e19857a38d58d57bf))
+
+
+
+## [4.11.85](https://github.com/ocsjs/ocsjs/compare/4.11.82...4.11.85) (2025-11-20)
+
+
+### Bug Fixes
+
+* **script:** 将超星环境调整脚本整合到内部，防止全局污染 ([b8a2a20](https://github.com/ocsjs/ocsjs/commit/b8a2a207a679eefd6647a9b058ea4f1dd39509fa))
+* **script:** 修复中国大学MOOC作业答题错乱问题 ([3dfcef1](https://github.com/ocsjs/ocsjs/commit/3dfcef1074d0e8258adee054af93ebb5d9373c35))
+
+
+
+## [4.11.82](https://github.com/ocsjs/ocsjs/compare/4.11.81...4.11.82) (2025-11-14)
+
+
+
+## [4.11.81](https://github.com/ocsjs/ocsjs/compare/4.11.78...4.11.81) (2025-11-14)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云资源库附件视频任务无法完成的BUG ([e8635e5](https://github.com/ocsjs/ocsjs/commit/e8635e5e090243ba04aee82887c9f95190e32bcc))
+* **script:** 修复职教云资源库总是无法学满进度的BUG ([b06dc44](https://github.com/ocsjs/ocsjs/commit/b06dc44b5be6847dbdc238fc69fb9a732f1e6178))
+
+
+
+## [4.11.78](https://github.com/ocsjs/ocsjs/compare/4.11.77...4.11.78) (2025-11-13)
+
+
+### Bug Fixes
+
+* **script:** 修改职教云资源库视频PPT跳转间隔为5秒 ([32504fa](https://github.com/ocsjs/ocsjs/commit/32504fa2553925fae3439a769650aaf9b6734095))
+
+
+
+## [4.1.76](https://github.com/ocsjs/ocsjs/compare/4.11.75...4.1.76) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云资源库PPT总是会返回第一页才结束的BUG ([5aab29b](https://github.com/ocsjs/ocsjs/commit/5aab29b9f67f743cef71ab2e99f3eec31d87c47a))
+
+
+
+## [4.11.77](https://github.com/ocsjs/ocsjs/compare/4.1.76...4.11.77) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云资源库PPT总是会返回第一页才结束的BUG ([e665f55](https://github.com/ocsjs/ocsjs/commit/e665f554d6b261cc176d38acc788e80f492923f1))
+
+
+
+## [4.1.76](https://github.com/ocsjs/ocsjs/compare/4.11.75...4.1.76) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云资源库PPT总是会返回第一页才结束的BUG ([5aab29b](https://github.com/ocsjs/ocsjs/commit/5aab29b9f67f743cef71ab2e99f3eec31d87c47a))
+
+
+
+## [4.11.75](https://github.com/ocsjs/ocsjs/compare/4.11.74...4.11.75) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 修复超星在章节列表页面提示已进入学习界面的BUG ([9e899e8](https://github.com/ocsjs/ocsjs/commit/9e899e82c70bfaf530d42e1bdaf489e0680723c5))
+
+
+
+## [4.11.74](https://github.com/ocsjs/ocsjs/compare/4.11.73...4.11.74) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 修复超星视频加载失败无法重启的BUG ([385d8a3](https://github.com/ocsjs/ocsjs/commit/385d8a32e40cc91dcb156f8c48238bedb060152b))
+
+
+
+## [4.11.73](https://github.com/ocsjs/ocsjs/compare/4.11.69...4.11.73) (2025-11-12)
+
+
+### Bug Fixes
+
+* **script:** 使用软件辅助模拟输入填空适配智慧树智慧课程掌握度填空题 ([a57be37](https://github.com/ocsjs/ocsjs/commit/a57be3706f408f68401b80a0672d6599959aaa05))
+* **script:** 添加智慧树倍速最高风险说明 ([cffcbc9](https://github.com/ocsjs/ocsjs/commit/cffcbc981f28a91964ee2f7f17f170272c875ad0))
+* **script:** 修复配置多个题库其中某个超时无法答题的BUG ([dd569dc](https://github.com/ocsjs/ocsjs/commit/dd569dce9cb1697d0ee084d28f76eeafca9e52c3)), closes [#270](https://github.com/ocsjs/ocsjs/issues/270)
+
+
+
+## [4.11.69](https://github.com/ocsjs/ocsjs/compare/4.11.64...4.11.69) (2025-11-09)
+
+
+### Bug Fixes
+
+* **core:** 修复隐藏窗口按钮无法使用的BUG ([c028a8f](https://github.com/ocsjs/ocsjs/commit/c028a8f9a921a4e1ce1ca01924c6d9f6dc0befcd))
+* **script:** 添加中国大学MOOC空白页自动跳转的功能 ([c562d2c](https://github.com/ocsjs/ocsjs/commit/c562d2ce4ccb2a1e2fce15adec1f56a9b913e76c))
+* **script:** 修复中国大学MOOC视频答题和章节测试冲突的问题 ([a61a8e0](https://github.com/ocsjs/ocsjs/commit/a61a8e02bb3c5c7054d99a90224d9bcfacec312e))
+
+
+### Features
+
+* **script:** 适配智慧树-AI教学中心-智慧课程作业答题功能 ([3d124af](https://github.com/ocsjs/ocsjs/commit/3d124af156fa640099a7fb7d94fe5c0a684a9685))
+* **script:** 修复智慧树倍速失效的BUG ([26a9a6d](https://github.com/ocsjs/ocsjs/commit/26a9a6dd73106f956acc5f6a299651522a77b24a))
+
+
+
+## [4.11.64](https://github.com/ocsjs/ocsjs/compare/4.11.61...4.11.64) (2025-11-07)
+
+
+### Bug Fixes
+
+* **core:** 答案匹配时移除标点符号保证匹配更加准确 ([3f02c30](https://github.com/ocsjs/ocsjs/commit/3f02c307de1baef626de8c2ad83830904fc519b7))
+* **scirpt:** 修复上个版本中国大学MOCC考试部分题目答题错误问题 ([bcf21b3](https://github.com/ocsjs/ocsjs/commit/bcf21b362c122d9414589d658cafc9e2ff19e398))
+
+
+
+## [4.11.61](https://github.com/ocsjs/ocsjs/compare/4.11.51...4.11.61) (2025-11-06)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云资源库点击PPT过快的BUG ([454ee5d](https://github.com/ocsjs/ocsjs/commit/454ee5d564c1e3f45728e56f779da5ea313abdcd))
+* **script:** 修复智慧树新形态课程（智慧课程）某些外链无法完成并跳过的BUG ([d9bbd50](https://github.com/ocsjs/ocsjs/commit/d9bbd501049a23605e94ea899618207734341a11))
+* **script:** 优化超星非整卷预览考试流畅度，添加搜索结果对于部分答页面题过程可控的菜单 ([f1f9082](https://github.com/ocsjs/ocsjs/commit/f1f9082c557007b86e22312f450b7530012fef5d))
+
+
+### Features
+
+* **script:** 支持搜索结果界面可控制答题进程功能 ([98573b5](https://github.com/ocsjs/ocsjs/commit/98573b5d00817040f859dc20fb337ed5e590687d))
+* **script:** 支持中国大学MOOC自动考试功能 ([40fbfdd](https://github.com/ocsjs/ocsjs/commit/40fbfdd763496176fc65b83280b351ac4a741052))
+
+
+### Performance Improvements
+
+* **script:** 添加超星凌晨刷课文案提示 ([f17992c](https://github.com/ocsjs/ocsjs/commit/f17992c778a14f67e652f2a9faefde6e55c42f87))
+* **script:** 添加多个答题页面菜单自动注册功能 ([b101424](https://github.com/ocsjs/ocsjs/commit/b10142401d8bb3a8874d6322f017881be7035d0f))
+
+
+
+## [4.11.51](https://github.com/ocsjs/ocsjs/compare/4.11.47...4.11.51) (2025-11-05)
+
+
+### Bug Fixes
+
+* **core:** 兼容搜题结果格式A#B#C#D解析为多选题 ([0d29813](https://github.com/ocsjs/ocsjs/commit/0d29813370b06580e37bce5bb68b659618e38747))
+
+
+### Features
+
+* **script:** 兼容职教云在线课程内容单独任务点连续学习功能，添加PPT翻阅速度调整选项 ([9883897](https://github.com/ocsjs/ocsjs/commit/9883897d39c8d10729c65084b13aff58711aee9e))
+
+
+### Performance Improvements
+
+* **script:** 添加智慧树共享课作业开启前阅读须知功能 ([7e7657b](https://github.com/ocsjs/ocsjs/commit/7e7657b4ec91f43eb4f91a2b1cae5df64e98d14d))
+
+
+
+## [4.11.47](https://github.com/ocsjs/ocsjs/compare/4.11.22...4.11.47) (2025-11-05)
+
+
+### Bug Fixes
+
+* 优化智慧树卡巴斯基文案 ([99253d6](https://github.com/ocsjs/ocsjs/commit/99253d643be17f4e73f5718c410d1da1b8a21e1b))
+* **core:** 修复窗口反复闪烁的BUG ([217b5e1](https://github.com/ocsjs/ocsjs/commit/217b5e103b0c01eb7f89e12a343847430ff687fc))
+* **icourse:** 修复中国大学MOOC无法完成富文本任务的BUG ([5dc3c06](https://github.com/ocsjs/ocsjs/commit/5dc3c0674290b3dd40a2e6a339b6d1574dbe644a))
+* **script:** 持续修复超星跳转未完成任务点模式无法使用的BUG ([66a74a2](https://github.com/ocsjs/ocsjs/commit/66a74a234ac4fd3810fed08eda99d10e7412d4f7))
+* **script:** 兼容职教云资源库新版PPT ([4919cef](https://github.com/ocsjs/ocsjs/commit/4919ceff58eef18336c8cc8c18bbf900cdd6cc23))
+* **script:** 兼容智慧树-AI助教课程PPT和文档功能 ([7c456ed](https://github.com/ocsjs/ocsjs/commit/7c456edb9149b2705d3e207740a80467225560f3))
+* **script:** 修复超星视频暂停后长时间才播放的BUG ([a26c03b](https://github.com/ocsjs/ocsjs/commit/a26c03b9cf54c2eb3a495ec9eec7343c623095c4))
+* **script:** 修复超星跳转未完成任务点模式无法使用的BUG ([a1ed883](https://github.com/ocsjs/ocsjs/commit/a1ed883152c406b2e041f96f1e6398ae37a8e87d))
+* **script:** 修复智慧树-AI助教倍速无法点击的BUG ([8ffa983](https://github.com/ocsjs/ocsjs/commit/8ffa983d23b55a21b66636789cba91a6a557d7ce))
+* **script:** 修复智慧树-AI助教课程无法自动跳转小节和PPT的BUG ([fe76e0e](https://github.com/ocsjs/ocsjs/commit/fe76e0e1a08d418cd532e5ba31f5bf3810413872))
+* **script:** 优化多选题纯答案无法解析的BUG ([97d8655](https://github.com/ocsjs/ocsjs/commit/97d8655ec656c6838f45a13ed0000be988862264))
+* **script:** 优化智慧树音量开始播放后没有立即调整的问题 ([eff3c71](https://github.com/ocsjs/ocsjs/commit/eff3c71b9a1e5b0f1ae4b831413ddd983145dc84))
+
+
+### Features
+
+* **script:** 软件配置同步后添加脚本双击配置页面强制取消功能 ([99948e9](https://github.com/ocsjs/ocsjs/commit/99948e9c180fd93b247af8de910cb1104986ee19))
+* **script:** 添加超星下一章切换后自动滚动到该元素的功能 ([c5c0726](https://github.com/ocsjs/ocsjs/commit/c5c0726075d52be3e1a8f5273d1e50a97df16566))
+* **script:** 添加超星页面加载后自动滚动到当前任务点的功能 ([16232df](https://github.com/ocsjs/ocsjs/commit/16232dfe8270224141068489bf5fe51c8a31d23c))
+* **script:** 添加超星章节测试答题时自动显示搜索结果 ([967c495](https://github.com/ocsjs/ocsjs/commit/967c495023b7671eee1581fae89a3795fb820568))
+* **script:** 添加全局快捷菜单自动注册功能 ([11403f6](https://github.com/ocsjs/ocsjs/commit/11403f67c80e9d033e868485cff37e1517f907cd))
+* **script:** 添加最小化/切屏窗口警告功能，优化文案 ([22028e4](https://github.com/ocsjs/ocsjs/commit/22028e470448b62ce6d305117831ab2a04ca7ccf))
+* **script:** 优化超星章节测试答题时自动打开搜索结果功能 ([7cc0046](https://github.com/ocsjs/ocsjs/commit/7cc0046a1a8d4f9caa7a03bee37f362cc42e52fa))
+* **script:** 支持中国大学MOOC视频内弹窗答题 ([8af7ec2](https://github.com/ocsjs/ocsjs/commit/8af7ec24affd9ea2db3410ee7774d4308df675f7))
+
+
+### Performance Improvements
+
+* **script:** 降低超星倍速警告阈值为2倍速，优化倍速警告 ([5aababb](https://github.com/ocsjs/ocsjs/commit/5aababba9a73ac860fe23147cd1c5a6f45d6a62b))
+* **script:** 添加智慧树作业禁止同时打开多个界面答题文案 ([f1cd8cb](https://github.com/ocsjs/ocsjs/commit/f1cd8cbbc32491d3d80ef386dadd109c19d67f70))
+* **script:** 修改搜题超时默认时间为2分钟，最大值为3分钟 ([a2a662f](https://github.com/ocsjs/ocsjs/commit/a2a662f339352672fc2a825912f42d1c150b455b))
+
+
+
 ## [4.11.22](https://github.com/ocsjs/ocsjs/compare/4.11.21...4.11.22) (2025-10-16)
 
 

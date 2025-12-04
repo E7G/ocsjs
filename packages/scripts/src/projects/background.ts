@@ -1,9 +1,22 @@
 import { RemotePlaywright, request } from '@ocsjs/core';
-import { $ui, $gm, $message, $modal, $store, Project, Script, StoreListenerType, h, $ } from 'easy-us';
+import {
+	$ui,
+	$gm,
+	$message,
+	$modal,
+	$store,
+	Project,
+	Script,
+	StoreListenerType,
+	h,
+	$,
+	MessageElement,
+	$menu
+} from 'easy-us';
 import semver_gt from 'semver/functions/gt';
 import semver_valid from 'semver/functions/valid';
 import { CommonProject } from './common';
-import { definedProjects } from '..';
+import { CXProject, definedProjects, ICourseProject, IcveMoocProject, ZHSProject, ZJYProject } from '..';
 import { RenderScript } from '../render';
 import { SearchInfosElement } from '../elements/search.infos';
 import { $render } from '../utils/render';
@@ -226,7 +239,11 @@ export const BackgroundProject = Project.create({
 				});
 			},
 			async onactive() {
-				if ($.isInTopWindow() && this.cfg.closeSync === false) {
+				if ($.isInTopWindow()) {
+					if (this.cfg.closeSync) {
+						$console.log('配置同步已关闭');
+						return;
+					}
 					this.cfg.sync_status = 'unconnect';
 					try {
 						const res = await request('http://localhost:15319/browser', {
@@ -330,8 +347,21 @@ export const BackgroundProject = Project.create({
 											panel.configsContainer.prepend(panel.lockWrapper);
 
 											panel.lockWrapper.title =
-												'🚫已同步OCS桌面版软件配置，如需修改请在桌面版软件的左侧栏设置-通用设置-OCS配置，中进行修改。或者前往脚本悬浮窗:后台-软件配置同步 关闭配置同步功能。';
+												'🚫已同步OCS桌面版软件配置，如需修改请在桌面版软件的左侧栏设置-通用设置-OCS配置，中进行修改。\n\n或者前往脚本悬浮窗:后台-软件配置同步 关闭配置同步功能。\n\n可双击强制修改，并关闭同步配置';
 											panel.lockWrapper = $ui.tooltip(panel.lockWrapper);
+											panel.lockWrapper.addEventListener('dblclick', () => {
+												panel.configsContainer.classList.remove('lock');
+												panel.lockWrapper.remove();
+												script.onrender = originalRender;
+												$message.warn({
+													content: '已解除配置同步，可正常修改配置。想开启同步请前往：后台-软件配置同步',
+													duration: 10
+												});
+												this.cfg.closeSync = true;
+												if (script.panel && script.header) {
+													script.onrender?.({ panel: script.panel, header: script.header });
+												}
+											});
 										}
 									};
 									// 重新执行渲染
@@ -832,6 +862,110 @@ export const BackgroundProject = Project.create({
 						return originalFetch.apply(this, [input, init]);
 					}
 				};
+			}
+		}),
+		environmentDetect: new Script({
+			name: '🤖 环境检测',
+			matches: [['所有页面', /.*/]],
+			hideInPanel: true,
+			oncomplete() {
+				if (self !== top) return;
+
+				const matches = [
+					CXProject.scripts.studyDispatcher.matches,
+					ZHSProject.scripts['gxk-study'].matches,
+					ZHSProject.scripts.hike.matches,
+					ZHSProject.scripts['smart-study'].matches,
+					ZHSProject.scripts['wisdom-study'].matches,
+					ZHSProject.scripts['xnk-study'].matches,
+					ICourseProject.scripts.study.matches,
+					IcveMoocProject.scripts.study.matches,
+					ZJYProject.scripts.study.matches
+				]
+					.flat()
+					.map((m) => (Array.isArray(m) ? m[1] : m));
+
+				const url = window.location.href;
+				const match = matches.some((regex) => {
+					return typeof regex === 'string' ? url.includes(regex) : regex.test(url);
+				});
+				if (!match) {
+					return;
+				}
+
+				let messageElement: MessageElement | undefined;
+				visibleDetect();
+
+				function visibleDetect() {
+					setTimeout(() => {
+						if (!messageElement?.isConnected) messageElement = undefined;
+
+						if (document.visibilityState === 'hidden' && !messageElement) {
+							messageElement = $message.warn({
+								content:
+									'⚠️检测到浏览器最小化/切屏，脚本可能无法正常运行，请保持网课页面在前台！（如果您正在全屏游戏中可以忽略此警告）',
+								duration: 0
+							});
+						}
+						visibleDetect();
+					}, 1000);
+				}
+			}
+		}),
+		menus: new Script({
+			name: '📁 菜单管理',
+			hideInPanel: true,
+			matches: [['所有页面', /.*/]],
+			async onactive() {
+				const currentStudyScript = [
+					[CXProject.scripts.studyDispatcher, CXProject.scripts.study],
+					CXProject.scripts.work,
+					ZHSProject.scripts['gxk-study'],
+					ZHSProject.scripts['xnk-study'],
+					ZHSProject.scripts.hike,
+					ZHSProject.scripts['smart-study'],
+					ZHSProject.scripts['wisdom-study'],
+					ZHSProject.scripts['xnk-study'],
+					ZHSProject.scripts['gxk-work'],
+					ZHSProject.scripts['xnk-work'],
+					ZHSProject.scripts['hike-work'],
+					ZHSProject.scripts['smart-work'],
+					ZHSProject.scripts['xnk-work'],
+					[ICourseProject.scripts.dispatcher, ICourseProject.scripts.study],
+					ICourseProject.scripts.work,
+					[ZJYProject.scripts.dispatcher, ZJYProject.scripts.study],
+					ZJYProject.scripts.work,
+					IcveMoocProject.scripts.study,
+					IcveMoocProject.scripts.work
+				]
+					.map((m) => {
+						const url = window.location.href;
+
+						const data = {
+							matches: Array.isArray(m) ? m[0].matches : m.matches,
+							target: Array.isArray(m) ? m[1] : m
+						};
+
+						if (
+							data.matches.some((regexp) => {
+								const r = Array.isArray(regexp) ? regexp[1] : regexp;
+								return typeof r === 'string' ? url.includes(r) : r.test(url);
+							})
+						) {
+							return data.target;
+						}
+
+						return undefined;
+					})
+					.find((m) => m !== undefined);
+
+				// 注册快捷菜单
+				await $menu('🏠', { scriptPanelLink: CommonProject.scripts.guide });
+				if (currentStudyScript) await $menu('🖥️', { scriptPanelLink: currentStudyScript });
+				await $menu('🔎', { scriptPanelLink: CommonProject.scripts.workResults });
+				await $menu('⚙️', { scriptPanelLink: CommonProject.scripts.settings });
+				await $menu('📥', { scriptPanelLink: BackgroundProject.scripts.update });
+				await $menu('📄', { scriptPanelLink: BackgroundProject.scripts.console });
 			}
 		})
 	}

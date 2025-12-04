@@ -52,6 +52,24 @@ export const auto: Config<any, boolean> = {
 
 /** 答题提示 */
 export const workNotes: Config<any, string> = {
-	defaultValue: $ui.notes(['自动答题前请在 “通用-全局设置” 中设置题库配置。', '可以搭配 “通用-在线搜题” 一起使用。'])
-		.outerHTML
+	defaultValue: $ui.notes([
+		'自动答题前请在 “通用-全局设置” 中设置题库配置。',
+		'可以搭配 “通用-在线搜题” 一起使用。',
+		'⚠️禁止同时开多个作业/考试页面。'
+	]).outerHTML
+};
+
+export const dropdownStyle: Omit<Config<any, string>, 'defaultValue'> = {
+	labelClassName: 'checkbox-label',
+	providerClassName: 'checkbox-input',
+	enableForAttribute: true,
+	onload(el) {
+		// @ts-ignore
+		const checked = this.checked;
+		el.classList.toggle('checked', checked);
+		this.addEventListener('change', () => {
+			// @ts-ignore
+			el.classList.toggle('checked', this.checked);
+		});
+	}
 };

@@ -11,6 +11,7 @@ type CourseType = {
 	levelName: string;
 	fileType: string;
 	id: string;
+	courseDesignId: string;
 	name: string;
 };
 
@@ -79,19 +80,41 @@ export const ZJYProject = Project.create({
 			name: '调度器',
 			matches: [
 				['学习页面', 'zjy2.icve.com.cn/study'],
-				['资源库', 'zyk.icve.com.cn/icve-study/']
+				['资源库', 'zyk.icve.com.cn/icve-study/'],
+				/**
+				 * 这个页面需要手动选择时间查找并进入，课程里面无连串课程查找，只能在当前页面整理
+				 */
+				['内容资源页面', 'zjy2.icve.com.cn/study/studentFast/classroomNow'],
+				['在线课堂学习页面', 'zjy2.icve.com.cn/study/studentFast/courseware']
 			],
 			hideInPanel: true,
 			methods() {
 				return {
-					dispatch: () => {
-						if (
+					dispatch: async () => {
+						if (['zjy2.icve.com.cn/study/studentFast/classroomNow'].some((i) => window.location.href.includes(i))) {
+							/**
+							 * 先在在线课堂内容获取课程数据，然后用户进入课程后看完视频读取数据进行下一章
+							 */
+							await waitForElement('.classroom_activities .active_list');
+							const courseData = getCourseDataInClassroomNowPage();
+							console.log(courseData);
+							// @ts-ignore
+							const courseId = document.querySelector('.teacherLayout')?.__vue__?.courseInfo?.id || '';
+							if (!courseData || !courseId) {
+								return;
+							}
+							ZJYProject.scripts.study.cfg.currentCourseId = courseId;
+							ZJYProject.scripts.study.cfg.courseList = courseData;
+							$message.success('课程数据获取成功，请点击课程章节开始学习');
+						} else if (
 							[
+								'zyk.icve.com.cn/icve-study/coursePreview/courseware',
 								'zjy2.icve.com.cn/study/coursePreview/spoccourseIndex/courseware',
-								'zyk.icve.com.cn/icve-study/coursePreview/courseware'
+								'zjy2.icve.com.cn/study/studentFast/courseware'
 							].some((i) => window.location.href.includes(i))
 						) {
-							ZJYProject.scripts.study.methods.main();
+							const isClassroomNowStudy = location.href.includes('zjy2.icve.com.cn/study/studentFast/courseware');
+							ZJYProject.scripts.study.methods.main(isClassroomNowStudy ? 'classroomNow' : 'normal');
 						} else if (work_pages.map(([_, p]) => p).some((i) => window.location.href.includes(i))) {
 							ZJYProject.scripts.work.methods.main();
 						}
@@ -114,6 +137,8 @@ export const ZJYProject = Project.create({
 		study: new Script({
 			matches: [
 				['学习页面', 'zjy2.icve.com.cn/study/coursePreview/spoccourseIndex/courseware'],
+				/** classroomNow */
+				['在线课堂学习页面', 'zjy2.icve.com.cn/studentFast/courseware'],
 				['资源库学习页面', 'zyk.icve.com.cn/icve-study/coursePreview/courseware']
 			],
 			name: '✍️ 课程学习',
@@ -135,6 +160,11 @@ export const ZJYProject = Project.create({
 					]),
 					defaultValue: '1'
 				},
+				pptReadPeriod: {
+					label: 'PPT 阅读每页停留时间（秒）',
+					defaultValue: 1,
+					attrs: { type: 'number', min: 1, step: 1, max: 10 }
+				},
 				currentCourseId: {
 					defaultValue: ''
 				},
@@ -144,8 +174,9 @@ export const ZJYProject = Project.create({
 			},
 			methods() {
 				return {
-					main: async () => {
-						const id = new URL(window.location.href).searchParams.get('id');
+					main: async (type: 'classroomNow' | 'normal') => {
+						const id = new URL(window.location.href).searchParams.get(type === 'classroomNow' ? 'activityId' : 'id');
+
 						if (!id) {
 							return;
 						}
@@ -181,45 +212,71 @@ export const ZJYProject = Project.create({
 
 						await waitForLoad();
 						// 加载课程数据
-						const courseId = getUniqueCourseId();
-						if (!courseId) {
-							$message.error({ content: '获取课程数据失败，请手动刷新页面' });
-							return;
-						}
-						const not_same_class =
-							!ZJYProject.scripts.study.cfg.currentCourseId ||
-							ZJYProject.scripts.study.cfg.currentCourseId !== courseId;
-
-						// 如果课程不一致，或者没有课程数据，则重新获取课程数据
-						if (
-							not_same_class ||
-							!ZJYProject.scripts.study.cfg.courseList ||
-							ZJYProject.scripts.study.cfg.courseList.length === 0
-						) {
-							const courseData = await getCourseData();
-							if (!courseData) {
+						if (type === 'normal') {
+							const courseId = getUniqueCourseId();
+							if (!courseId) {
+								$message.error({ content: '获取课程数据失败，请手动刷新页面' });
 								return;
 							}
-							ZJYProject.scripts.study.cfg.currentCourseId = courseId;
-							ZJYProject.scripts.study.cfg.courseList = courseData;
+							const not_same_class =
+								!ZJYProject.scripts.study.cfg.currentCourseId ||
+								ZJYProject.scripts.study.cfg.currentCourseId !== courseId;
+
+							// 如果课程不一致，或者没有课程数据，则重新获取课程数据
+							if (
+								not_same_class ||
+								!ZJYProject.scripts.study.cfg.courseList ||
+								ZJYProject.scripts.study.cfg.courseList.length === 0
+							) {
+								const courseData = await getCourseData();
+								if (!courseData) {
+									return;
+								}
+								ZJYProject.scripts.study.cfg.currentCourseId = courseId;
+								ZJYProject.scripts.study.cfg.courseList = courseData;
+							}
 						}
 
 						const courseInfo = ZJYProject.scripts.study.cfg.courseList.find((i) => i.id === id);
-
 						if (!courseInfo) {
-							const err = '获取课程信息失败，请手动刷新页面';
-							$message.error({ content: err, duration: 0 });
+							const btn = h('button', { className: 'base-style-button' }, '修复数据');
+							btn.onclick = async () => {
+								const courseId = getUniqueCourseId();
+								if (!courseId) {
+									$message.error({ content: '获取课程数据失败！' });
+									return;
+								}
+								const courseData = await getCourseData();
+								if (!courseData) {
+									return;
+								}
+								ZJYProject.scripts.study.cfg.currentCourseId = courseId;
+								ZJYProject.scripts.study.cfg.courseList = courseData;
+								$modal.simple({
+									title: '提示',
+									content: '数据已修复完毕，请刷新页面重新尝试运行。'
+								});
+							};
+							const err = '获取课程信息失败，请手动刷新页面，或者尝试修复数据：';
+							$message.error({ content: h('span', [err, btn]), duration: 0 });
 							$console.error(err);
 							return;
 						}
 
+						/**
+						 * courseType 在类型为文件夹+附件形式（附件为视频）时，显示混乱类型比如：courseType: 知识点讲解
+						 * 此时从页面获取的 curType 反而是正确的 video 类型
+						 */
+						const vue = getVueBindElement();
+						const courseType = vue.curType === 'video' ? 'video' : courseInfo?.fileType || '';
+
 						const started_url = window.location.href;
-						let msg = '开始学习：' + courseInfo.fileType + '-' + courseInfo.name;
+						let msg = '开始学习：' + courseType + '-' + courseInfo.name;
 						$message.success(msg);
 						$console.info(msg);
-						if (['ppt', 'doc', 'pptx', 'docx', 'pdf', 'txt', 'ppt文档'].some((i) => courseInfo.fileType === i)) {
-							await watchFile();
-						} else if (['video', 'audio', 'mp4', 'mp3', 'flv', '视频'].some((i) => courseInfo.fileType === i)) {
+						if (['ppt', 'doc', 'pptx', 'docx', 'pdf', 'txt', 'ppt文档'].some((i) => courseType === i)) {
+							await watchFile(this.cfg.pptReadPeriod);
+						} else if (['video', 'audio', 'mp4', 'mp3', 'flv', '视频'].some((i) => courseType === i)) {
 							const text = $el('.guide')?.textContent || '';
 							msg = `任务点 ${courseInfo.name}，不支持播放。`;
 							if (text.includes('很抱歉，您的浏览器不支持播放此类文件') || text.includes('此视频暂无法播放')) {
@@ -229,22 +286,22 @@ export const ZJYProject = Project.create({
 							} else {
 								await watchMedia();
 							}
-						} else if (['png', 'jpg', '图片'].some((i) => courseInfo.fileType === i)) {
+						} else if (['png', 'jpg', '图片'].some((i) => courseType === i)) {
 							msg = `已查看图片任务点 ${courseInfo.name}，即将跳过。`;
 							$message.info(msg);
 							$console.info(msg);
 						} else {
-							msg = `未知的任务点 ${courseInfo.name}，类型 ${courseInfo.fileType}，请跟作者进行反馈。`;
+							msg = `未知的任务点 ${courseInfo.name}，类型 ${courseType}，请跟作者进行反馈。`;
 							$message.error(msg);
 							$console.error(msg);
 						}
 						if (started_url === window.location.href) {
-							msg = courseInfo.name + ' 任务点结束，三秒后下一章';
+							msg = courseInfo.name + ' 任务点结束，五秒后下一章';
 							$message.warn('如果职教云一直卡在显示：“资源类型无法学习，请核对数据！” 请手动切换下一章。');
 							$message.info(msg);
 							$console.info(msg);
-							await $.sleep(3000);
-							await next();
+							await $.sleep(5000);
+							await next(type);
 						}
 					}
 				};
@@ -309,8 +366,8 @@ async function watchMedia() {
 	});
 }
 
-async function watchFile() {
-	const vue = getVueBindElement();
+async function watchFile(pptReadPeriod: number) {
+	const vue = getPPTVueBindElement();
 	if (!vue) {
 		return;
 	}
@@ -328,10 +385,10 @@ async function watchFile() {
 		if (!current || !total) {
 			break;
 		}
-		if (current >= total) {
+		if (current >= total - 1) {
 			break;
 		}
-		await $.sleep(500);
+		await $.sleep(pptReadPeriod * 1000);
 		// 旧版PPT任务，新版使用 skip
 		try {
 			vue.next && vue.next();
@@ -358,8 +415,20 @@ function getVueBindElement() {
 	return $el('.guide')?.__vue__ || $el('.teach')?.__vue__;
 }
 
-async function next() {
-	const id = new URL(window.location.href).searchParams.get('id');
+function getPPTVueBindElement() {
+	/**
+	 * 2025/11月新PPT，使用 FilePreview 获取
+	 */
+
+	return $el('.FilePreview')?.__vue__ || $el('.guide')?.__vue__ || $el('.teach')?.__vue__;
+}
+
+async function next(type: 'classroomNow' | 'normal') {
+	/**
+	 * activityId 属于老师在线课堂 classroomNow 页面跳转参数
+	 */
+	const field = type === 'classroomNow' ? 'activityId' : 'id';
+	const id = new URL(window.location.href).searchParams.get(field);
 	let nextObject: CourseType | undefined;
 	const data = ZJYProject.scripts.study.cfg.courseList;
 	for (let index = 0; index < data.length; index++) {
@@ -387,7 +456,10 @@ async function next() {
 
 		await $.sleep(3000);
 		const url = new URL(window.location.href);
-		url.searchParams.set('id', nextObject.id);
+		if (nextObject.courseDesignId) {
+			url.searchParams.set('courseDesignId', nextObject.courseDesignId);
+		}
+		url.searchParams.set(field, nextObject.id);
 		window.location.replace(url.href);
 	} else {
 		$message.success({
@@ -401,6 +473,29 @@ async function next() {
 		});
 		state.studying = false;
 	}
+}
+
+function getCourseDataInClassroomNowPage() {
+	// @ts-ignore
+	const list = document.querySelector('.classroom_activities')?.__vue__?.activeList || [];
+	const data: CourseType[] = [];
+	const temp = JSON.parse(JSON.stringify(list));
+	while (temp.length > 0) {
+		const item = temp.shift();
+
+		if (item?.children?.length > 0) {
+			temp.unshift(...item.children);
+		} else {
+			data.push({
+				name: item.title,
+				id: item.activityId,
+				fileType: item.fileType,
+				courseDesignId: item.courseDesignId,
+				levelName: item.levelName || ''
+			});
+		}
+	}
+	return data;
 }
 
 async function getCourseData() {
@@ -418,7 +513,8 @@ async function getCourseData() {
 					name: item.name,
 					id: item.id,
 					fileType: item.fileType,
-					levelName: item.levelName || ''
+					levelName: item.levelName || '',
+					courseDesignId: item.courseDesignId || ''
 				});
 			}
 		}

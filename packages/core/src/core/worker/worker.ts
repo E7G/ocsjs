@@ -1,21 +1,19 @@
-import { CommonEventEmitter } from 'easy-us';
+import { $, CommonEventEmitter } from 'easy-us';
 import { domSearchAll } from '../utils/dom';
-import { RawElements, ResolverResult, WorkContext, WorkOptions, WorkResult, WorkUploadType } from './interface';
-import { defaultQuestionResolve } from './question.resolver';
+import {
+	CustomWorkOptions,
+	RawElements,
+	ResolverResult,
+	SimplifyWorkResult,
+	WorkContext,
+	WorkerEvents,
+	WorkOptions,
+	WorkResult,
+	WorkUploadType
+} from './interface';
+import { createDefaultQuestionResolver } from './question.resolver';
 import { defaultWorkTypeResolver } from './utils';
-
-type WorkerEvent = {
-	/** 答题开始 */
-	start: () => void;
-	/** 答题结果 */
-	done: () => void;
-	/** 关闭答题 */
-	close: () => void;
-	/** 暂停答题 */
-	stop: () => void;
-	/** 继续答题 */
-	continuate: () => void;
-};
+import { AnswerWrapperHandlerConfig } from '../answer-wrapper';
 
 /**
  * 自动答题器， 传入一些指定的配置， 就可以进行自动答题。
@@ -24,7 +22,7 @@ type WorkerEvent = {
  * @param answerer  查题器, : 默认是 {@link defaultAnswerWrapperHandler}
  *
  */
-export class OCSWorker<E extends RawElements = RawElements> extends CommonEventEmitter<WorkerEvent> {
+export class OCSWorker<E extends RawElements = RawElements> extends CommonEventEmitter<WorkerEvents> {
 	opts: WorkOptions<E>;
 	isRunning = false;
 	isClose = false;
@@ -86,10 +84,22 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 
 			/** 执行元素搜索钩子 */
 			await this.opts.onElementSearched?.(ctx.elements, questionRoot);
-
 			/** 排除掉 null 的元素 */
 			ctx.elements.title = ctx.elements.title?.filter(Boolean) as HTMLElement[];
 			ctx.elements.options = ctx.elements.options?.filter(Boolean) as HTMLElement[];
+
+			/** 获取题目类型 */
+			if (typeof this.opts.work === 'object') {
+				ctx.type =
+					this.opts.work.type === undefined
+						? // 使用默认解析器
+						  defaultWorkTypeResolver(ctx)
+						: // 自定义解析器
+						typeof this.opts.work.type === 'string'
+						? this.opts.work.type
+						: this.opts.work.type(ctx);
+			}
+
 			results.push({
 				requested: false,
 				resolved: false,
@@ -118,23 +128,20 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 				await waitForContinuate(() => this.isStop);
 			}
 
-			/** 获取题目类型 */
-			if (typeof this.opts.work === 'object') {
-				ctx.type =
-					this.opts.work.type === undefined
-						? // 使用默认解析器
-						  defaultWorkTypeResolver(ctx)
-						: // 自定义解析器
-						typeof this.opts.work.type === 'string'
-						? this.opts.work.type
-						: this.opts.work.type(ctx);
-			}
-
 			/** 查找答案 */
 			ctx.searchInfos = [];
 
 			if (options?.enable_debug) {
-				console.debug('开始搜题: ', result.ctx);
+				console.groupEnd();
+				console.group(
+					'开始搜题: ',
+					ctx.elements.title
+						?.map((t) => t?.innerText)
+						.filter(Boolean)
+						.join(', ')
+						.slice(0, 20)
+				);
+				console.log('ctx', result.ctx);
 			}
 
 			try {
@@ -156,50 +163,54 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 			result.error = error;
 
 			if (options?.enable_debug) {
-				console.debug('搜题完成: ', index, result.ctx);
+				console.log('搜题结果: ', ctx.searchInfos);
 			}
 			/** 回调 */
 			await this.opts.onResultsUpdate?.(results[index], index, results);
 		};
 
+		const waitForRequested = async (result: WorkResult<E>) => {
+			return new Promise<void>((resolve, reject) => {
+				const interval = setInterval(() => {
+					if (result?.requested === true) {
+						clearInterval(interval);
+						clearTimeout(timeout);
+						resolve();
+					}
+				}, 200);
+
+				const timeout = setTimeout(() => {
+					clearInterval(interval);
+					reject(new Error('答题超时！'));
+				}, (AnswerWrapperHandlerConfig.timeout_seconds + 10) * 1000);
+			});
+		};
+
 		/** 答题线程， */
 		const resolverThread = async () => {
-			const waitForRequested = async (result: WorkResult<E>) => {
-				return new Promise<void>((resolve, reject) => {
-					const interval = setInterval(() => {
-						if (result?.requested === true) {
-							clearInterval(interval);
-							clearTimeout(timeout);
-							resolve();
-						}
-					}, 200);
-
-					const timeout = setTimeout(() => {
-						clearInterval(interval);
-						reject(new Error('答题超时！'));
-					}, 60 * 1000);
-				});
-			};
-
 			for (let index = 0; index < results.length; index++) {
 				const result = results[index];
 
 				let error: string | undefined;
 				let res: ResolverResult | undefined;
+				/** 强行关闭 */
+				if (this.isClose === true) {
+					this.isRunning = false;
+					return;
+				}
 
 				try {
-					/** 强行关闭 */
-					if (this.isClose === true) {
-						this.isRunning = false;
-						return;
-					}
 					/** 检查是否暂停中 */
 					if (this.isStop) {
 						await waitForContinuate(() => this.isStop);
 					}
 					/** 等待搜题完毕 */
 					await waitForRequested(result);
+				} catch (err) {
+					// 超时错误
+				}
 
+				try {
 					if (result.ctx && result.ctx.searchInfos.length !== 0) {
 						/** 开始处理 */
 						if (typeof this.opts.work === 'object') {
@@ -207,7 +218,7 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 								/** 使用默认处理器 */
 
 								if (result.ctx.type) {
-									const resolver = defaultQuestionResolve(result.ctx)[result.ctx.type];
+									const resolver = createDefaultQuestionResolver(result.ctx)[result.ctx.type];
 									const handler = this.opts.work.handler;
 									res = await resolver(result.ctx.searchInfos, result.ctx.elements.options as HTMLElement[], handler);
 								} else {
@@ -236,7 +247,14 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 				result.resolved = true;
 
 				if (options?.enable_debug) {
-					console.debug('答题完成: ', index, result);
+					console.log(
+						'答题完成: ',
+						result.ctx?.elements.title
+							?.map((t) => t?.innerText)
+							.join(', ')
+							.slice(0, 20),
+						result
+					);
 				}
 
 				/** 回调 */
@@ -339,6 +357,99 @@ export class OCSWorker<E extends RawElements = RawElements> extends CommonEventE
 			} else {
 				return callback(rate, type === 'save' ? false : rate >= parseFloat(type.toString()));
 			}
+		}
+	}
+}
+
+export class CustomOCSWorker extends CommonEventEmitter<WorkerEvents> {
+	opts: CustomWorkOptions;
+	isRunning = false;
+	isClose = false;
+	isStop = false;
+
+	constructor(opts: CustomWorkOptions) {
+		super();
+		this.opts = opts;
+	}
+
+	/** 启动答题器  */
+	async doWork(options?: { enable_debug?: boolean }) {
+		this.emit('start');
+		this.isRunning = true;
+
+		this.once('close', () => {
+			this.isClose = true;
+		});
+
+		this.on('stop', () => {
+			this.isStop = true;
+		});
+
+		this.on('continuate', () => {
+			this.isStop = false;
+		});
+
+		const questions = await this.opts.questions?.();
+
+		if (options?.enable_debug) {
+			console.debug('开始答题', this);
+			console.debug('题目数量: ', this.opts.questions.length);
+		}
+		const results: SimplifyWorkResult[] = [];
+
+		for (let index = 0; index < questions.length; index++) {
+			/** 强行关闭 */
+			if (this.isClose === true) {
+				this.isRunning = false;
+				return;
+			}
+			/** 检查是否暂停中 */
+			if (this.isStop) {
+				await waitForContinuate(() => this.isStop);
+			}
+
+			const question = questions[index];
+			results[index] = {
+				question: question.text,
+				requested: false,
+				resolved: false,
+				searchInfos: [],
+				type: question.type,
+				finish: false,
+				error: ''
+			};
+
+			try {
+				const infos = await this.opts.answerer(question.text);
+				results[index].searchInfos = infos.map((i) => ({
+					name: i.name,
+					homepage: i.homepage,
+					results: i.results.map((r) => [r.question, r.answer, r.extra_data || {}]),
+					error: i.error
+				}));
+				results[index].requested = true;
+				this.opts.onResultsUpdate?.(results[index], index, results);
+
+				try {
+					const resolved = await this.opts.resolver(infos);
+					results[index].finish = resolved.finish;
+					results[index].error = resolved.error;
+					results[index].resolved = true;
+				} catch (err) {
+					results[index].finish = false;
+					results[index].error = err instanceof Error ? err.message : String(err);
+					results[index].resolved = true;
+				}
+				this.opts.onResultsUpdate?.(results[index], index, results);
+			} catch (err) {
+				results[index].requested = true;
+				results[index].resolved = false;
+				results[index].finish = true;
+				results[index].error = err instanceof Error ? err.message : String(err);
+				this.opts.onResultsUpdate?.(results[index], index, results);
+			}
+
+			await $.sleep(this.opts.period);
 		}
 	}
 }

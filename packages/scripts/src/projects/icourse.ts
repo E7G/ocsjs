@@ -1,5 +1,5 @@
 import { $, OCSWorker, RemotePage, defaultAnswerWrapperHandler } from '@ocsjs/core';
-import { $message, Project, Script, $ui } from 'easy-us';
+import { $message, Project, Script, $ui, $store } from 'easy-us';
 import { CommonWorkOptions, playMedia } from '../utils';
 import { CommonProject } from './common';
 import { commonWork, optimizationElementWithImage, removeRedundantWords, simplifyWorkResult } from '../utils/work';
@@ -17,7 +17,8 @@ const $msg_and_log = (type: 'info' | 'warn' | 'error', msg: string) => {
 const state = {
 	currentMedia: undefined as HTMLMediaElement | undefined,
 	currentUrlHash: '',
-	currentRunningScriptName: ''
+	currentRunningScriptName: '',
+	current_job_id: ''
 };
 
 export const ICourseProject = Project.create({
@@ -45,8 +46,12 @@ export const ICourseProject = Project.create({
 							if (runAtHash.length && runAtHash.some((h) => state.currentUrlHash.includes(h))) {
 								if (state.currentRunningScriptName !== script.name) {
 									state.currentRunningScriptName = script.name;
-									script.methods?.main?.(() => {
-										return state.currentUrlHash && runAtHash.some((h) => state.currentUrlHash.includes(h));
+									state.current_job_id = Math.random().toString(16).slice(2);
+									script.methods?.main?.({
+										canRun: () => {
+											return state.currentUrlHash && runAtHash.some((h) => state.currentUrlHash.includes(h));
+										},
+										job_id: state.current_job_id
 									});
 								}
 								break;
@@ -134,7 +139,7 @@ export const ICourseProject = Project.create({
 			},
 			methods() {
 				return {
-					main: async (canRun: () => boolean) => {
+					main: async ({ canRun, job_id }: { canRun: () => boolean; job_id: string }) => {
 						CommonProject.scripts.render.methods.pin(this);
 
 						const remotePage = await BackgroundProject.scripts.dev.methods.getRemotePlaywrightCurrentPage();
@@ -145,6 +150,34 @@ export const ICourseProject = Project.create({
 
 						// 移动窗口到边缘
 						$render.moveToEdge();
+
+						/**
+						 * 处理视频弹窗题目
+						 */
+						const handleVideoTest = async () => {
+							if (!canRun() || job_id !== state.current_job_id) return;
+							setTimeout(async () => {
+								const question = document.querySelector('.u-questionItem');
+								const media = document.querySelector('video,audio');
+								if (question && media) {
+									$msg_and_log('info', '检测到视频弹窗测验，开始答题');
+									await new Promise<void>((resolve) => {
+										ICourseProject.scripts.work.methods.start('chapter-test', canRun, (worker) => {
+											console.log('worker', worker);
+											worker.once('done', resolve);
+											worker.once('close', resolve);
+											worker.once('stop', resolve);
+										});
+									});
+									await $.sleep(1000);
+									// 点击继续学习
+									await remotePage.click('.j-unitctBox .u-btn-default.j-continue');
+									$msg_and_log('info', '测验完成');
+								}
+								handleVideoTest();
+							}, 3000);
+						};
+						handleVideoTest();
 
 						const study = async () => {
 							const lessonName = document.querySelector('.j-lesson .j-up')?.textContent;
@@ -179,6 +212,7 @@ export const ICourseProject = Project.create({
 
 												worker.once('done', resolve);
 												worker.once('close', resolve);
+												worker.once('stop', resolve);
 											});
 										});
 
@@ -193,8 +227,19 @@ export const ICourseProject = Project.create({
 									$msg_and_log('info', '随堂测验已完成，即将跳过。');
 								}
 							} else if (isJob('u-icon-text')) {
-								// 文档无需处理
-								$msg_and_log('info', '文档无需处理，即将跳过。');
+								const key = 'text-job-reload';
+								if ((await $store.getTab(key)) === '1') {
+									$store.setTab(key, '0');
+									$msg_and_log('info', '文档已完成，即将跳过。');
+								} else {
+									// 需要刷新才能完成富文本文档任务点
+									$store.setTab(key, '1');
+									// 文档无需处理
+									$msg_and_log('info', '文档无需处理，将在刷新完成后跳过。');
+									await $.sleep(3000);
+									window.location.reload();
+									return;
+								}
 							} else {
 								hasJob = false;
 							}
@@ -310,7 +355,8 @@ export const ICourseProject = Project.create({
 			namespace: 'icourse.work-v2',
 			matches: [
 				['MOOC作业页面', 'icourse163.org/learn'],
-				['SPOC作业页面', 'icourse163.org/spoc/learn']
+				['SPOC作业页面', 'icourse163.org/spoc/learn'],
+				['考试页面', 'icourse163.org/mooc/main/newExam']
 			],
 			configs: {
 				notes: workNotes,
@@ -320,15 +366,10 @@ export const ICourseProject = Project.create({
 			},
 			methods() {
 				const start = async (
-					type: 'chapter-test' | 'work-or-exam',
+					type: 'chapter-test' | 'work' | 'exam',
 					canRun: () => boolean,
-					onWorkerCreated?: (worker: OCSWorker) => void
+					onWorkerCreated?: (worker: any) => void
 				) => {
-					CommonProject.scripts.render.methods.pin(this);
-
-					// 移动窗口到边缘
-					$render.moveToEdge();
-
 					// 检查是否为软件环境
 					const remotePage = await BackgroundProject.scripts.dev.methods.getRemotePlaywrightCurrentPage();
 					// 检查是否为软件环境
@@ -338,6 +379,9 @@ export const ICourseProject = Project.create({
 
 					// 等待加载题目
 					await waitForQuestion();
+
+					CommonProject.scripts.render.methods.pin(this);
+					CommonProject.scripts.render.methods.normal();
 
 					$msg_and_log('info', '开始答题');
 					CommonProject.scripts.render.methods.pin(this);
@@ -356,19 +400,50 @@ export const ICourseProject = Project.create({
 							}, 1000);
 							return worker;
 						},
-						onWorkerCreated: onWorkerCreated
+						onWorkerCreated: onWorkerCreated,
+						enable_control_panel: true,
+						start_delay_seconds: 3
 					});
 				};
 				return {
-					main: async (canRun: () => boolean) => {
+					main: async ({ canRun }: { canRun: () => boolean; job_id: string }) => {
 						if (location.hash.includes('learn/quizscore')) {
 							$message.success('当前作业已完成，自动答题关闭。');
 							return;
 						}
-						return start('work-or-exam', canRun);
+						return start('work', canRun);
 					},
 					start: start
 				};
+			},
+			// 考试是新开一个界面所以会直接触发
+			oncomplete() {
+				if (
+					(location.href.includes('/learn/examObject') &&
+						// 考试成绩解析页面
+						!location.href.includes('learn/examObjectScore')) ||
+					// 新版考试界面
+					location.href.includes('/mooc/main/newExam')
+				) {
+					this.methods.start('exam', () => true);
+				}
+			}
+		}),
+		passportRedirect: new Script({
+			name: '登录重定向修复',
+			matches: [['登录重定向', 'passport/logingate/changeCookie.htm']],
+			configs: {
+				notes: {
+					defaultValue: $ui.notes(['检测到页面重定向到空白页面', '程序将会自动修复']).outerHTML
+				}
+			},
+			hideInPanel: true,
+			oncomplete(...args) {
+				CommonProject.scripts.render.methods.pin(this);
+				$message.info('检测到中国大学MOOC空白页面，即将重定向修复...');
+				setTimeout(() => {
+					location.href = 'https://www.icourse163.org/';
+				}, 3000);
 			}
 		})
 	}
@@ -377,7 +452,7 @@ export const ICourseProject = Project.create({
 function waitForQuestion() {
 	return new Promise<void>((resolve, reject) => {
 		const interval = setInterval(() => {
-			if (document.querySelector('.u-questionItem')) {
+			if (document.querySelector('.u-questionItem,[class*=questionBody]')) {
 				clearInterval(interval);
 				resolve();
 			}
@@ -387,7 +462,7 @@ function waitForQuestion() {
 
 function workAndExam(
 	remotePage: RemotePage,
-	type: 'chapter-test' | 'work-or-exam',
+	type: 'chapter-test' | 'work' | 'exam',
 	{
 		answererWrappers,
 		period,
@@ -414,13 +489,14 @@ function workAndExam(
 			redundanceWordsText.split('\n')
 		);
 	};
+	const work_type = type;
 
 	/** 新建答题器 */
 	const worker = new OCSWorker({
-		root: '.u-questionItem',
+		root: type === 'exam' ? '[class*=questionBody]' : '.u-questionItem',
 		elements: {
-			title: '.j-title .j-richTxt',
-			options: '.choices li,.inputArea'
+			title: type === 'exam' ? '[class*=questionInfo]' : '.j-title .j-richTxt',
+			options: type === 'exam' ? '[class*=index-module__optionBody]' : '.choices li,.inputArea'
 		},
 		thread: thread ?? 1,
 		answerSeparators: answerSeparators.split(',').map((s) => s.trim()),
@@ -445,10 +521,17 @@ function workAndExam(
 			/** 自定义处理器 */
 			async handler(type, answer, option) {
 				if (type === 'judgement' || type === 'single' || type === 'multiple') {
+					if (work_type === 'exam') {
+						const input = option.querySelector('input');
+						if (input && !input?.checked) {
+							await $.sleep(200);
+							return input.click();
+						}
+					}
 					const text = option.querySelector('.f-richEditorText');
-
 					const input = option.querySelector('input');
 					if (input && !input?.checked && text) {
+						await $.sleep(200);
 						await remotePage.click(text);
 					}
 				} else if (type === 'completion' && answer.trim()) {
@@ -456,7 +539,7 @@ function workAndExam(
 
 					if (text) {
 						text.value = answer.trim();
-						await remotePage.click(text);
+						await remotePage.fill('textarea', answer.trim());
 					}
 				}
 			}
@@ -485,7 +568,7 @@ function workAndExam(
 	});
 
 	worker
-		.doWork()
+		.doWork({ enable_debug: true })
 		.then(async (results) => {
 			if (worker.isClose) {
 				return;
@@ -505,7 +588,7 @@ function workAndExam(
 							uploadable ? '3秒后将自动提交' : '3秒后将自动跳过（没保存按钮）'
 						} `;
 						$console.info(content);
-						$message.success({ content: content, duration: 0 });
+						$message.success({ content: content, duration: type === 'chapter-test' ? 10 : 0 });
 
 						await $.sleep(3000);
 						if (worker.isClose) {

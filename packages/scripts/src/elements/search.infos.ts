@@ -1,4 +1,4 @@
-import { SimplifyWorkResult, splitAnswer, $ } from '@ocsjs/core';
+import { SimplifyWorkResult, splitAnswer, $, QuestionTypes } from '@ocsjs/core';
 import { $ui, h } from 'easy-us';
 import { createQuestionTitleExtra } from '../utils';
 
@@ -12,7 +12,7 @@ const transformImgLinkOfQuestion = (question: string) => {
 		img.replaceWith(img.src);
 	}
 	// 最后将所有图片链接替换成 img 标签
-	return dom.documentElement.innerText.replace(/https?:\/\/.+?\.(png|jpg|jpeg|gif)/g, (img) => {
+	return dom.documentElement.innerHTML.replace(/https?:\/\/.+?\.(png|jpg|jpeg|gif)/g, (img) => {
 		return `<img src="${img}" />`;
 	});
 };
@@ -26,19 +26,36 @@ export class SearchInfosElement extends HTMLElement {
 	/** 当前的题目 */
 	question: string = '';
 
+	type: QuestionTypes;
+
 	connectedCallback() {
 		const question = transformImgLinkOfQuestion(this.question || '无');
 
+		const type_text = {
+			single: '单选题',
+			multiple: '多选题',
+			judgement: '判断题',
+			completion: '填空题'
+		};
+		const type_label = this.type ? Reflect.get(type_text, this.type) : '';
+
 		this.append(
-			h('div', [h('span', { innerHTML: question }), createQuestionTitleExtra(this.question)], (div) => {
-				div.style.padding = '4px';
-			}),
-			h('hr')
+			h(
+				'div',
+				[
+					...(type_label ? [h('span', { className: 'search-result-question-type' }, type_label)] : []),
+					h('span', { innerHTML: question }),
+					createQuestionTitleExtra(this.question)
+				],
+				(div) => {
+					div.className = 'search-info-title';
+				}
+			)
 		);
 
 		this.append(
 			...this.infos.map((info) => {
-				return h('details', { open: true }, [
+				return h('details', { open: true, className: 'search-info-details' }, [
 					h('summary', [h('a', { href: info.homepage, innerText: info.name, target: '_blank' })]),
 
 					...(info.error
@@ -61,6 +78,16 @@ export class SearchInfosElement extends HTMLElement {
 								});
 							}
 
+							if (extra_data.cache) {
+								extra_data.tags = extra_data.tags || [];
+								extra_data.tags.push({
+									text: '题库缓存',
+									title:
+										'此答案来自本地缓存，由在线题库搜索后保存在本地。\n- 清空缓存：请前往通用-拓展应用-题库缓存\n- 关闭缓存：请前往通用-全局设置-题库缓存',
+									color: 'gray'
+								});
+							}
+
 							return h('div', { className: 'search-result' }, [
 								/** 题目 */
 								h('div', { className: 'question' }, [h('span', { innerHTML: title })]),
@@ -70,7 +97,7 @@ export class SearchInfosElement extends HTMLElement {
 									...(extra_data.tags
 										? extra_data.tags.map((tag: { text: string; title: string; color: string }) =>
 												$ui.tooltip(
-													h('code', {
+													h('span', {
 														className: 'search-result-answer-tag ' + tag.color,
 														innerHTML: tag.text,
 														title: tag.title,

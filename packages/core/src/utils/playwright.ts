@@ -1,6 +1,7 @@
 import type { Page } from 'playwright-core';
 import { request } from '../core/utils';
 import { $ } from './common';
+import { $elements, $message } from 'easy-us';
 
 export type Base64 = string;
 
@@ -97,6 +98,14 @@ export interface RemotePage {
 		url: string;
 	}>;
 	waitForSelector(...args: Parameters<Page['waitForSelector']>): Promise<void>;
+	['keyboard.type']: Page['keyboard']['type'];
+	['keyboard.press']: Page['keyboard']['press'];
+	['mouse.wheel']: Page['mouse']['wheel'];
+	['mouse.click']: Page['mouse']['click'];
+	['mouse.dblclick']: Page['mouse']['dblclick'];
+	['mouse.down']: Page['mouse']['down'];
+	['mouse.up']: Page['mouse']['up'];
+	['mouse.move']: Page['mouse']['move'];
 }
 
 const ListOfActions = [
@@ -116,7 +125,33 @@ const ListOfActions = [
 	'reload',
 	'waitForRequest',
 	'waitForResponse',
-	'waitForSelector'
+	'waitForSelector',
+	'keyboard.type',
+	'keyboard.press',
+	'mouse.wheel',
+	'mouse.click',
+	'mouse.dblclick',
+	'mouse.down',
+	'mouse.up',
+	'mouse.move'
+];
+
+const mouseIdleRequireActions = [
+	'click',
+	'dblclick',
+	'dragAndDrop',
+	'fill',
+	'hover',
+	'tap',
+	'press',
+	'keyboard.type',
+	'keyboard.press',
+	'mouse.wheel',
+	'mouse.click',
+	'mouse.dblclick',
+	'mouse.down',
+	'mouse.up',
+	'mouse.move'
 ];
 
 export class RemotePlaywright {
@@ -163,6 +198,11 @@ export class RemotePlaywright {
 			Reflect.set(page, property, async (...args: any[]) => {
 				let data;
 
+				if (mouseIdleRequireActions.includes(property)) {
+					// 等待鼠标静止/空闲
+					await waitForMouseIdle();
+				}
+
 				if (property === 'click') {
 					if (args[0] instanceof Element) {
 						const el = args[0] as HTMLElement;
@@ -172,13 +212,28 @@ export class RemotePlaywright {
 						// 如果是传入的元素对象，那么就解析元素的坐标进行点击
 						// 这里滑动的时间可能会比较长，取决于页面的长度，所以这里多等待一点时间
 						await $.sleep(500);
+						const rect = el.getBoundingClientRect();
+
+						// 移动可能阻挡点击的脚本面板
+						const elFromPoint = $elements.root?.elementFromPoint(
+							rect.left + rect.width / 2,
+							rect.top + rect.height / 2
+						);
+						if (elFromPoint && $elements.root && $elements.root.contains(elFromPoint)) {
+							// 如果元素在根节点内，则隐藏面板
+							const panel = $elements.root.querySelector<HTMLElement>('container-element');
+
+							if (panel) {
+								$message.info({ content: '检测到脚本阻挡点击位置，已自动移开', duration: 2 });
+								await $.transition(panel, 'left', 0.1, rect.left + rect.width / 2 + 100 + 'px', { reset_ms: 1 });
+							}
+						}
 
 						// 显示鼠标位置
 						if (configs?.show_debug_cursor) {
 							showMousePointer(el);
 						}
 
-						const rect = el.getBoundingClientRect();
 						data = {
 							page: window.location.href,
 							property: 'mouse.click',
@@ -259,4 +314,25 @@ function showMousePointer(el: HTMLElement) {
 			div.remove();
 		}, 500);
 	}, 100);
+}
+
+function waitForMouseIdle(timeout: number = 200): Promise<void> {
+	return new Promise((resolve) => {
+		let timer: any;
+		const default_timer = setTimeout(() => {
+			window.removeEventListener('mousemove', onMouseMove);
+			resolve();
+		}, timeout); // 最多等timeout + 1000ms
+		function onMouseMove() {
+			clearTimeout(default_timer);
+			if (timer) {
+				clearTimeout(timer);
+			}
+			timer = setTimeout(() => {
+				window.removeEventListener('mousemove', onMouseMove);
+				resolve();
+			}, timeout);
+		}
+		window.addEventListener('mousemove', onMouseMove);
+	});
 }

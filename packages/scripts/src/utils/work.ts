@@ -1,7 +1,9 @@
-import { OCSWorker, SimplifyWorkResult, WorkResult } from '@ocsjs/core';
-import { $ui, $message, MessageElement, Script, h } from 'easy-us';
+import { SimplifyWorkResult, WorkerEvents, WorkResult } from '@ocsjs/core';
+import { $ui, $message, MessageElement, Script, h, CommonEventEmitter, cors, $elements } from 'easy-us';
 import { CommonProject } from '../projects/common';
 import { CommonWorkOptions, workPreCheckMessage } from '.';
+
+export let globalControlPanel: HTMLElement | null = null;
 
 /**
  * 通用作业考试工具方法
@@ -10,16 +12,17 @@ export function commonWork(
 	script: Script,
 	options: {
 		start_delay_seconds?: number;
-		workerProvider: (opts: CommonWorkOptions) => OCSWorker<any> | undefined;
+		enable_control_panel?: boolean;
+		workerProvider: (opts: CommonWorkOptions) => CommonEventEmitter<WorkerEvents> | undefined;
 		beforeRunning?: () => void | Promise<void>;
 		onRestart?: () => void | Promise<void>;
-		onWorkerCreated?: (worker: OCSWorker<any>) => void | Promise<void>;
+		onWorkerCreated?: (worker: CommonEventEmitter<WorkerEvents>) => void | Promise<void>;
 	}
 ) {
 	// 置顶当前脚本
 	CommonProject.scripts.render.methods.pin(script);
+	let worker: CommonEventEmitter<WorkerEvents> | undefined;
 
-	let worker: OCSWorker<any> | undefined;
 	/**
 	 * 是否已经按下了开始按钮
 	 */
@@ -35,12 +38,15 @@ export function commonWork(
 	let running = false;
 
 	/** 显示答题控制按钮 */
-	const createControls = () => {
+	const createWorkControlPanel = () => {
 		const { controlBtn, restartBtn, startBtn } = createWorkerControl({
 			workerProvider: () => worker,
 			onStart: async () => {
 				startBtnPressed = true;
-				checkMessage?.remove();
+				if (checkMessage instanceof MessageElement) {
+					checkMessage.remove();
+				}
+				closeAnswerWrapperEmptyWarning();
 				start();
 			},
 			onRestart: async () => {
@@ -63,33 +69,42 @@ export function commonWork(
 			running ? [controlBtn, restartBtn] : [startBtn]
 		);
 
+		globalControlPanel = container;
+
 		return { container, startBtn, restartBtn, controlBtn };
 	};
 	const workResultPanel = () => CommonProject.scripts.workResults.methods.createWorkResultsPanel();
 
-	script.on('render', () => {
-		let gotoSettingsBtnContainer: string | HTMLElement = '';
-		if (checkFailed) {
-			const gotoSettingsBtn = $ui.button('👉 前往设置题库配置', {
-				className: 'base-style-button',
-				style: { flex: '1', padding: '4px' }
-			});
-			gotoSettingsBtn.style.flex = '1';
-			gotoSettingsBtn.style.padding = '4px';
-			gotoSettingsBtn.onclick = () => {
-				CommonProject.scripts.render.methods.pin(CommonProject.scripts.settings);
-			};
-			gotoSettingsBtnContainer = h('div', { style: { display: 'flex' } }, [gotoSettingsBtn]);
-		}
+	const sync_script = [script];
+	if (options.enable_control_panel) {
+		sync_script.push(CommonProject.scripts.workResults);
+	}
 
-		script.panel?.body?.replaceChildren(
-			h('div', { style: { marginTop: '12px' } }, [
-				gotoSettingsBtnContainer,
-				createControls().container,
-				workResultPanel()
-			])
-		);
-	});
+	for (const script of sync_script) {
+		script.on('render', () => {
+			let gotoSettingsBtnContainer: string | HTMLElement = '';
+			if (checkFailed) {
+				const gotoSettingsBtn = $ui.button('👉 前往设置题库配置', {
+					className: 'base-style-button',
+					style: { flex: '1', padding: '4px' }
+				});
+				gotoSettingsBtn.style.flex = '1';
+				gotoSettingsBtn.style.padding = '4px';
+				gotoSettingsBtn.onclick = () => {
+					CommonProject.scripts.render.methods.pin(CommonProject.scripts.settings);
+				};
+				gotoSettingsBtnContainer = h('div', { style: { display: 'flex' } }, [gotoSettingsBtn]);
+			}
+
+			script.panel?.body?.replaceChildren(
+				h('div', { style: { marginTop: '12px' } }, [
+					gotoSettingsBtnContainer,
+					...(options.enable_control_panel ? [globalControlPanel || createWorkControlPanel().container] : []),
+					workResultPanel()
+				])
+			);
+		});
+	}
 
 	const workOptions = CommonProject.scripts.settings.methods.getWorkOptions();
 
@@ -115,12 +130,13 @@ export function commonWork(
 			options.onWorkerCreated?.(worker);
 		}
 
-		const { container, controlBtn } = createControls();
+		const { container, controlBtn } = createWorkControlPanel();
 		// 更新状态
 		script.panel?.body?.replaceChildren(container, workResultPanel());
 
 		worker?.once('done', () => {
 			running = false;
+			globalControlPanel = null;
 			controlBtn.disabled = true;
 		});
 	};
@@ -130,7 +146,7 @@ export function commonWork(
  * 答题控制
  */
 export function createWorkerControl(options: {
-	workerProvider: () => OCSWorker<any> | undefined;
+	workerProvider: () => CommonEventEmitter<WorkerEvents> | undefined;
 	onStart: () => void;
 	onRestart: () => void;
 }) {
@@ -203,11 +219,19 @@ export function simplifyWorkResult(
 	const res: SimplifyWorkResult[] = [];
 	let i = 0;
 	for (const wr of results) {
+		const ques =
+			titleTransform?.(wr.ctx?.elements.title || [], i) ||
+			wr.ctx?.elements.title
+				?.map((e) => e?.innerText.trim())
+				.filter(Boolean)
+				.join('<br>') ||
+			'';
 		res.push({
 			requested: wr.requested,
 			resolved: wr.resolved,
 			error: wr.error,
-			question: titleTransform?.(wr.ctx?.elements.title || [], i) || wr.ctx?.elements.title?.join(',') || '',
+			type: wr.ctx?.type,
+			question: ques,
 			finish: wr.result?.finish,
 			searchInfos:
 				wr.ctx?.searchInfos.map((sr) => ({
@@ -232,3 +256,26 @@ export function removeRedundantWords(str: string, words: string[]) {
 	}
 	return str;
 }
+
+let answererWrapperUnsetMessage: MessageElement | undefined;
+
+export const answerWrapperEmptyWarning = cors.defineTopFunction((duration: number) => {
+	const setting = h('button', { className: 'base-style-button-secondary' }, '通用-全局设置');
+	setting.onclick = () => {
+		CommonProject.scripts.render.methods.pin(CommonProject.scripts.settings);
+		setTimeout(() => {
+			$elements.root?.querySelector<HTMLElement>('[value="点击配置"]')?.click();
+		}, 500);
+	};
+
+	answererWrapperUnsetMessage?.remove();
+	answererWrapperUnsetMessage = $message.warn({
+		content: h('span', {}, ['你还没设置题库，无法自动答题，请切换到 ', setting, ' 页面进行配置。']),
+		duration: duration
+	});
+});
+
+export const closeAnswerWrapperEmptyWarning = cors.defineTopFunction(() => {
+	answererWrapperUnsetMessage?.remove();
+	answererWrapperUnsetMessage = undefined;
+});
