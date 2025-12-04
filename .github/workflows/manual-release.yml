@@ -3,9 +3,14 @@ name: Manual Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: 'Release version (e.g., 4.12.3)'
+      use_date_version:
+        description: 'Generate version based on date?'
         required: true
+        default: 'true'
+        type: boolean
+      version:
+        description: 'Release version (only used if "Generate version based on date" is false)'
+        required: false
         type: string
       prerelease:
         description: 'Is this a prerelease?'
@@ -22,13 +27,35 @@ jobs:
     outputs:
       release_tag: ${{ steps.set_tag.outputs.release_tag }}
       release_name: ${{ steps.set_tag.outputs.release_name }}
+      release_version: ${{ steps.set_tag.outputs.release_version }}
     steps:
-      - name: Set release tag
+      - name: Generate release tag
         id: set_tag
         run: |
-          TAG="v${{ github.event.inputs.version }}"
+          if [ "${{ github.event.inputs.use_date_version }}" = "true" ]; then
+            # Generate date-based version
+            DATE=$(date +'%Y.%m.%d')
+            # Check if a tag with this date already exists
+            TAG_SUFFIX=1
+            EXISTING_TAGS=$(git tag -l "v${DATE}.*" | sort -V)
+            if [ -n "$EXISTING_TAGS" ]; then
+              # Get the highest suffix and increment by 1
+              LAST_TAG=$(echo "$EXISTING_TAGS" | tail -1)
+              LAST_SUFFIX=$(echo "$LAST_TAG" | sed "s/v${DATE}\.//")
+              TAG_SUFFIX=$((LAST_SUFFIX + 1))
+            fi
+            VERSION="${DATE}.${TAG_SUFFIX}"
+            echo "Generated date-based version: $VERSION"
+          else
+            # Use provided version
+            VERSION="${{ github.event.inputs.version }}"
+            echo "Using provided version: $VERSION"
+          fi
+          
+          TAG="v${VERSION}"
           echo "release_tag=$TAG" >> $GITHUB_OUTPUT
-          echo "release_name=Release ${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          echo "release_name=Release $VERSION" >> $GITHUB_OUTPUT
+          echo "release_version=$VERSION" >> $GITHUB_OUTPUT
           echo "Release tag will be: $TAG"
 
   build-and-release:
@@ -56,8 +83,8 @@ jobs:
           echo 'VITE_BUILD_PATH="../../release"' > ./packages/core/.env
           echo 'VITE_BUILD_PATH="../../release"' > ./packages/scripts/.env
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v${{ github.event.inputs.version }}/" >> $GITHUB_ENV
+          echo "VERSION=${{ needs.prepare.outputs.release_version }}" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/${{ needs.prepare.outputs.release_tag }}/" >> $GITHUB_ENV
           
       - name: Install Dependencies
         run: |

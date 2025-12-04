@@ -6,8 +6,13 @@ name: Userscript Auto Releases
 on:
   workflow_dispatch:
     inputs:
+      use_date_version:
+        description: 'Generate version based on date?'
+        required: true
+        default: 'true'
+        type: boolean
       version:
-        description: 'Release version (leave empty to use package.json version)'
+        description: 'Release version (only used if "Generate version based on date" is false)'
         required: false
         type: string
       prerelease:
@@ -37,16 +42,34 @@ jobs:
           echo 'VITE_BUILD_PATH="../../release"' > ./packages/scripts/.env
           echo "BUILDTIME=$(TZ=Asia/Shanghai date)" >> $GITHUB_ENV
           
-          # Use provided version or get from package.json
-          if [ -n "${{ github.event.inputs.version }}" ]; then
+          # Generate version based on user input
+          if [ "${{ github.event.inputs.use_date_version }}" = "true" ]; then
+            # Generate date-based version
+            DATE=$(date +'%Y.%m.%d')
+            # Check if a tag with this date already exists
+            TAG_SUFFIX=1
+            EXISTING_TAGS=$(git tag -l "v${DATE}.*" | sort -V)
+            if [ -n "$EXISTING_TAGS" ]; then
+              # Get the highest suffix and increment by 1
+              LAST_TAG=$(echo "$EXISTING_TAGS" | tail -1)
+              LAST_SUFFIX=$(echo "$LAST_TAG" | sed "s/v${DATE}\.//")
+              TAG_SUFFIX=$((LAST_SUFFIX + 1))
+            fi
+            VERSION="${DATE}.${TAG_SUFFIX}"
+            echo "Generated date-based version: $VERSION"
+          elif [ -n "${{ github.event.inputs.version }}" ]; then
+            # Use provided version
             VERSION="${{ github.event.inputs.version }}"
+            echo "Using provided version: $VERSION"
           else
+            # Use package.json version
             VERSION=$(jq -r .version package.json)
+            echo "Using package.json version: $VERSION"
           fi
           
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v$VERSION/" >> $GITHUB_ENV
-          echo "TAG_NAME=v$VERSION" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://github.com/${{ github.repository }}/releases/download/v${VERSION}/" >> $GITHUB_ENV
+          echo "TAG_NAME=v${VERSION}" >> $GITHUB_ENV
       - name: Install Dependencies
         run: |
           npm install pnpm -g
