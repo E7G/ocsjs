@@ -1,4 +1,4 @@
-import { OCSWorker, defaultAnswerWrapperHandler, $, defaultQuestionResolve } from '@ocsjs/core';
+import { OCSWorker, defaultAnswerWrapperHandler, $, createDefaultQuestionResolver } from '@ocsjs/core';
 import { Project, Script, $el, $$el, $message, $ui } from 'easy-us';
 import { CommonWorkOptions, playMedia } from '../utils';
 import { CommonProject } from './common';
@@ -170,11 +170,11 @@ function workOrExam(
 			const type = getQuestionType(typeInput.innerText);
 
 			if (type && (type === 'completion' || type === 'multiple' || type === 'judgement' || type === 'single')) {
-				const resolver = defaultQuestionResolve(ctx)[type];
+				const resolver = createDefaultQuestionResolver(ctx)[type];
 				return await resolver(
 					searchInfos,
 					elements.options.map((option) => optimizationElementWithImage(option)),
-					async (type, answer, option) => {
+					async (type: string, answer: string, option: HTMLElement) => {
 						// $modal.alert({
 						// 	title: '已选择选项',
 						// 	content: `已选择选项: ${option?.querySelector('label')?.innerText}`
