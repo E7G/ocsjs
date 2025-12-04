@@ -174,7 +174,12 @@ function workOrExam(
 				return await resolver(
 					searchInfos,
 					elements.options.map((option) => optimizationElementWithImage(option)),
-					async (type: string, answer: string, option: HTMLElement) => {
+					async (
+						type: 'single' | 'multiple' | 'completion' | 'judgement' | undefined,
+						answer: string,
+						option: HTMLElement,
+						ctx: any
+					) => {
 						// $modal.alert({
 						// 	title: '已选择选项',
 						// 	content: `已选择选项: ${option?.querySelector('label')?.innerText}`
