@@ -1,15 +1,10 @@
-## [4.12.3](https://github.com/ocsjs/ocsjs/compare/4.12.0...4.12.3) (2025-12-03)
+## [4.12.16](https://github.com/ocsjs/ocsjs/compare/4.12.15...4.12.16) (2026-03-06)
 
 
 ### Bug Fixes
 
-* **script:** 添加职教云资源库修复功能按钮 ([898bb3b](https://github.com/ocsjs/ocsjs/commit/898bb3b31ca18740b4cf4072369adf45150f1b3d))
-* **script:** 修复中国大学MOOC新版考试无法运行的BUG ([8f0a188](https://github.com/ocsjs/ocsjs/commit/8f0a18824ec7839a288620cf9c58cd79ec11ca57))
-
-
-### Performance Improvements
-
-* **script:** 加强智慧树作业考试自动保存警告 ([7a44eb7](https://github.com/ocsjs/ocsjs/commit/7a44eb7a70ca23547f55419fa3c7e69755c0c038))
+* **script:** 修复智慧课程AI伴学的视频无法检测，以及掌握度只有一题的情况无法答题的BUG ([8ff88f2](https://github.com/ocsjs/ocsjs/commit/8ff88f2ddf2a16852082b5ca7d84575d5215bb6a))
+* **script:** 优化 eslint 报错 ([036644f](https://github.com/ocsjs/ocsjs/commit/036644fc351cbdba3cca55655200bf1cd421dc92))
 
 
 

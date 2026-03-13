@@ -1,3 +1,113 @@
+## [4.12.16](https://github.com/ocsjs/ocsjs/compare/4.12.15...4.12.16) (2026-03-06)
+
+
+### Bug Fixes
+
+* **script:** 修复智慧课程AI伴学的视频无法检测，以及掌握度只有一题的情况无法答题的BUG ([8ff88f2](https://github.com/ocsjs/ocsjs/commit/8ff88f2ddf2a16852082b5ca7d84575d5215bb6a))
+* **script:** 优化 eslint 报错 ([036644f](https://github.com/ocsjs/ocsjs/commit/036644fc351cbdba3cca55655200bf1cd421dc92))
+
+
+
+## [4.12.15](https://github.com/ocsjs/ocsjs/compare/4.12.14...4.12.15) (2026-03-04)
+
+
+### Bug Fixes
+
+* **script:** 修复2026上学期智慧树-新智慧课程无法自动下一章的BUG ([437696d](https://github.com/ocsjs/ocsjs/commit/437696da2017549c40e10584d964c82be77bd16e))
+
+
+
+## [4.12.14](https://github.com/ocsjs/ocsjs/compare/4.12.13...4.12.14) (2026-02-28)
+
+
+### Features
+
+* **script:** 添加ZE题库域名白名单授权 ([a5bdb91](https://github.com/ocsjs/ocsjs/commit/a5bdb919b28f87023e79230930f46245326aef6d))
+
+
+
+## [4.12.13](https://github.com/ocsjs/ocsjs/compare/4.12.12...4.12.13) (2026-02-25)
+
+
+### Bug Fixes
+
+* **script:** 适配 2026 上学期智慧树-新智慧学习界面 ([6f449cc](https://github.com/ocsjs/ocsjs/commit/6f449ccfc25c6d99d287ae39a6434a8a28a07f58))
+
+
+
+## [4.12.12](https://github.com/ocsjs/ocsjs/compare/4.12.11...4.12.12) (2025-12-29)
+
+
+### Bug Fixes
+
+* 修复 github workflow 运行后 release 不显示更新内容的BUG ([96065e7](https://github.com/ocsjs/ocsjs/commit/96065e70fcea1226ffc97f6759ec4b10e0e6783c))
+
+
+
+## [4.12.11](https://github.com/ocsjs/ocsjs/compare/4.12.10...4.12.11) (2025-12-29)
+
+
+### Bug Fixes
+
+* 添加 git workflow 输出 ([467d53d](https://github.com/ocsjs/ocsjs/commit/467d53d5f96c44cb3629723ebf471a13b65e4b49))
+
+
+
+## [4.12.10](https://github.com/ocsjs/ocsjs/compare/4.12.9...4.12.10) (2025-12-29)
+
+
+### Bug Fixes
+
+* 修复 github workflow 运行后 release 不显示更新内容的BUG ([addb25a](https://github.com/ocsjs/ocsjs/commit/addb25a5aceb6b0ae72ef1c8718797d60f595df0))
+
+
+
+## [4.12.9](https://github.com/ocsjs/ocsjs/compare/4.12.8...4.12.9) (2025-12-29)
+
+
+### Bug Fixes
+
+* 修复 github workflow 运行后 release 不显示更新内容的BUG ([2bacbfd](https://github.com/ocsjs/ocsjs/commit/2bacbfd0dcfe4f35d8058aee92aec07a376b96c4))
+
+
+
+## [4.12.8](https://github.com/ocsjs/ocsjs/compare/4.12.7...4.12.8) (2025-12-29)
+
+
+### Bug Fixes
+
+* 持续修复 github workflow 运行后 release 不显示更新内容的BUG ([ecfa203](https://github.com/ocsjs/ocsjs/commit/ecfa20390b3648522a0b5383fcc6cae6d8cc4223))
+
+
+
+## [4.12.7](https://github.com/ocsjs/ocsjs/compare/4.12.6...4.12.7) (2025-12-29)
+
+
+### Bug Fixes
+
+* 修复 github workflow 运行后 release 不显示更新内容的BUG ([676c7ed](https://github.com/ocsjs/ocsjs/commit/676c7ed2dffc2f5a547a496b9fcf20ff3ab3dc14))
+
+
+
+## [4.12.6](https://github.com/ocsjs/ocsjs/compare/4.12.4...4.12.6) (2025-12-29)
+
+
+### Bug Fixes
+
+* **script:** 适配2025-12月智慧树新智慧学习域名 ([acc2c79](https://github.com/ocsjs/ocsjs/commit/acc2c79ccb5c1542f92f1811d84e543caebd1fe8))
+* **script:** 修复超星学习通没配置题库无法跳过章节测试的BUG ([e27d978](https://github.com/ocsjs/ocsjs/commit/e27d978f3620a90e961c79f523d6cce3b58f6380))
+
+
+
+## [4.12.4](https://github.com/ocsjs/ocsjs/compare/4.12.3...4.12.4) (2025-12-16)
+
+
+### Bug Fixes
+
+* **core:** 修复答案为圆圈数字时无法答题的BUG ([676f437](https://github.com/ocsjs/ocsjs/commit/676f4374745effe0187460560e097bc5c2e84c14))
+
+
+
 ## [4.12.3](https://github.com/ocsjs/ocsjs/compare/4.12.0...4.12.3) (2025-12-03)
 
 
