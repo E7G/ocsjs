@@ -24,11 +24,11 @@ async function buildPackages() {
 	// @ts-ignore
 	await execOut('tsc', { cwd: '../packages/core' });
 	// @ts-ignore
-	await execOut('pnpx vite build', { cwd: '../packages/core' });
+	await execOut('pnpm exec vite build', { cwd: '../packages/core' });
 	// @ts-ignore
 	await execOut('tsc', { cwd: '../packages/scripts' });
 	// @ts-ignore
-	await execOut('pnpx vite build', { cwd: '../packages/scripts' });
+	await execOut('pnpm exec vite build', { cwd: '../packages/scripts' });
 }
 
 async function createUserJs() {

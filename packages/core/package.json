@@ -30,21 +30,21 @@
 	"homepage": "https://github.com/ocsjs/ocsjs#readme",
 	"devDependencies": {
 		"@types/event-emitter": "^0.3.3",
-		"@types/lodash": "^4.17.0",
+		"@types/lodash": "^4.14.194",
 		"@types/string-similarity": "^4.0.0",
 		"@types/tampermonkey": "^4.0.5",
-		"dotenv": "^16.4.0",
-		"rollup-plugin-visualizer": "^5.14.0",
-		"typedoc": "^0.27.0",
-		"vite": "^6.2.0",
-		"vite-plugin-banner": "^0.7.0"
+		"dotenv": "^16.0.3",
+		"rollup-plugin-visualizer": "^5.9.0",
+		"typedoc": "^0.23.23",
+		"vite": "2.9.15",
+		"vite-plugin-banner": "^0.6.1"
 	},
 	"dependencies": {
 		"easy-us": "^0.0.57",
 		"events": "^3.3.0",
 		"lodash": "^4.17.21",
-		"playwright-core": "^1.50.0",
-		"semver": "^7.7.0",
+		"playwright-core": "^1.40.1",
+		"semver": "^7.3.5",
 		"string-similarity": "^4.0.4"
 	}
 }
