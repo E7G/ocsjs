@@ -776,7 +776,21 @@ function workOrExam(
 							options:
 								ctx.type === 'completion'
 									? ''
-									: ctx.elements.options.map((o) => optimizationElementWithImage(o, true).innerText).join('\n')
+									: ctx.elements.options
+											.map((o) => {
+												const text = optimizationElementWithImage(o, true).innerText?.trim();
+												if (text) return text;
+												const li = o.closest('li');
+												if (li) {
+													const fl = li.querySelector('.fl:not(.after):not(.before)');
+													if (fl?.textContent?.trim()) {
+														return fl.textContent.trim();
+													}
+												}
+												return '';
+											})
+											.filter(Boolean)
+											.join('\n')
 						});
 					});
 				} else {
@@ -1791,7 +1805,7 @@ const JobRunner = {
 			root: TiMu,
 			elements: {
 				title: '.Zy_TItle .clearfix',
-				/*
+				/**
 				 * 兼容各种选项
 				 *
 				 * ul li .after 单选多选
@@ -1820,7 +1834,21 @@ const JobRunner = {
 							options:
 								ctx.type === 'completion'
 									? ''
-									: ctx.elements.options.map((o) => optimizationElementWithImage(o, true).innerText).join('\n')
+									: ctx.elements.options
+											.map((o) => {
+												const text = optimizationElementWithImage(o, true).innerText?.trim();
+												if (text) return text;
+												const li = o.closest('li');
+												if (li) {
+													const fl = li.querySelector('.fl:not(.after):not(.before)');
+													if (fl?.textContent?.trim()) {
+														return fl.textContent.trim();
+													}
+												}
+												return '';
+											})
+											.filter(Boolean)
+											.join('\n')
 						});
 					});
 				} else {
