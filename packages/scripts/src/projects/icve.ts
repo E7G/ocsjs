@@ -4,14 +4,15 @@ import {
 	defaultAnswerWrapperHandler,
 	OCSWorker,
 	createDefaultQuestionResolver,
-	splitAnswer
+	splitAnswer,
+	QuestionTypes
 } from '@ocsjs/core';
 import { $gm, cors, $message, $$el, $modal, $el, Project, Script, $ui, h } from 'easy-us';
 import { playbackRate, restudy, volume } from '../utils/configs';
 import { CommonWorkOptions, playMedia } from '../utils';
 import { CommonProject } from './common';
 import { commonWork, simplifyWorkResult } from '../utils/work';
-import { $console } from './background';
+import { $console, BackgroundProject } from './background';
 import { waitForElement, waitForMedia } from '../utils/study';
 
 const state = {
@@ -923,7 +924,7 @@ function work({ answererWrappers, period, thread, answerSeparators, answerMatchM
 
 	(async () => {
 		while (next && worker.isClose === false) {
-			await worker.doWork({ enable_debug: true });
+			await worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug });
 			await $.sleep(1000);
 			next = getNextBtn();
 			if (next.style.display === 'none') {
@@ -979,7 +980,7 @@ function aiWork({ answererWrappers, period, thread, answerSeparators, answerMatc
 				: 'single'
 			: options.some((o) => o.querySelector('[type="checkbox"]'))
 			? 'multiple'
-			: options.some((o) => o.querySelector('textarea'))
+			: options.some((o) => o.querySelector('textarea')) || options.some((o) => o.classList.contains('ivu-input'))
 			? 'completion'
 			: options.some((o) => o.querySelector('.fillblank_input input'))
 			? 'fill-blank'
@@ -990,7 +991,7 @@ function aiWork({ answererWrappers, period, thread, answerSeparators, answerMatc
 		root: '.content-item',
 		elements: {
 			title: '.questions-content [class*=title-content]',
-			options: 'label[class*=group-item]'
+			options: 'label[class*=group-item],.ivu-input-wrapper input'
 		},
 		thread: thread ?? 1,
 		answerSeparators: answerSeparators.split(',').map((s) => s.trim()),
@@ -1011,7 +1012,11 @@ function aiWork({ answererWrappers, period, thread, answerSeparators, answerMatc
 				throw new Error('题目为空，请查看题目是否为空，或者忽略此题');
 			}
 		},
+
 		work: {
+			type: (ctx) => {
+				return getType(ctx.elements.options) as QuestionTypes;
+			},
 			async handler(type, answer, option, ctx) {
 				if (type === 'judgement' || type === 'single' || type === 'multiple') {
 					// 这里只用判断多选题是否选中，如果选中就不用再点击了，单选题是 radio，所以不用判断。
@@ -1019,7 +1024,17 @@ function aiWork({ answererWrappers, period, thread, answerSeparators, answerMatc
 						option?.click();
 					}
 				} else if (type === 'completion' && answer.trim()) {
-					// 尚未支持
+					if (option.tagName === 'INPUT') {
+						option.focus();
+						await $.sleep(100);
+						// @ts-ignore
+						option.value = answer.trim();
+						await $.sleep(100);
+						option.dispatchEvent(new Event('input', { bubbles: true }));
+						await $.sleep(100);
+						option.blur();
+						await $.sleep(100);
+					}
 				}
 			}
 		},
@@ -1058,7 +1073,7 @@ function aiWork({ answererWrappers, period, thread, answerSeparators, answerMatc
 
 	(async () => {
 		while (next && worker.isClose === false) {
-			await worker.doWork({ enable_debug: true });
+			await worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug });
 			await $.sleep(1000);
 			next = getNextBtn();
 			if (next.getAttribute('disabled')) {

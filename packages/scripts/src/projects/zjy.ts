@@ -2,8 +2,8 @@ import { $, OCSWorker, defaultAnswerWrapperHandler } from '@ocsjs/core';
 import { Project, Script, $ui, $el, $message, $modal, h } from 'easy-us';
 import { volume } from '../utils/configs';
 import { waitForMedia, waitForElement } from '../utils/study';
-import { CommonWorkOptions, playMedia } from '../utils';
-import { $console } from './background';
+import { $msg, CommonWorkOptions, playMedia } from '../utils';
+import { $console, BackgroundProject } from './background';
 import { CommonProject } from './common';
 import { commonWork, simplifyWorkResult } from '../utils/work';
 
@@ -74,6 +74,22 @@ export const ZJYProject = Project.create({
 				notes: {
 					defaultValue: '请点击任意章节，进入学习。'
 				}
+			}
+		}),
+		v2: new Script({
+			name: '旧版切换器',
+			matches: [['新版智慧职教', 'zjy2.icve.com.cn/study/v2/']],
+			hideInPanel: true,
+			oncomplete() {
+				$msg.info('脚本只支持旧版职教云，即将跳转到旧版职教云页面...');
+				$modal.alert({
+					title: '提示',
+					content: '脚本只支持旧版职教云，即将跳转到<b>旧版</b>职教云页面...',
+					maskCloseable: false
+				});
+				setTimeout(() => {
+					location.href = '/study/index';
+				}, 5000);
 			}
 		}),
 		dispatcher: new Script({
@@ -274,7 +290,7 @@ export const ZJYProject = Project.create({
 						let msg = '开始学习：' + courseType + '-' + courseInfo.name;
 						$message.success(msg);
 						$console.info(msg);
-						if (['ppt', 'doc', 'pptx', 'docx', 'pdf', 'txt', 'ppt文档'].some((i) => courseType === i)) {
+						if (['ppt', 'doc', 'pptx', 'docx', 'pdf', 'txt', 'ppt文档', 'xls', 'xlsx'].some((i) => courseType === i)) {
 							await watchFile(this.cfg.pptReadPeriod);
 						} else if (['video', 'audio', 'mp4', 'mp3', 'flv', '视频'].some((i) => courseType === i)) {
 							const text = $el('.guide')?.textContent || '';
@@ -296,7 +312,7 @@ export const ZJYProject = Project.create({
 							$console.error(msg);
 						}
 						if (started_url === window.location.href) {
-							msg = courseInfo.name + ' 任务点结束，五秒后下一章';
+							msg = '任务点结束，五秒后下一章';
 							$message.warn('如果职教云一直卡在显示：“资源类型无法学习，请核对数据！” 请手动切换下一章。');
 							$message.info(msg);
 							$console.info(msg);
@@ -385,10 +401,9 @@ async function watchFile(pptReadPeriod: number) {
 		if (!current || !total) {
 			break;
 		}
-		if (current >= total - 1) {
+		if (current >= total) {
 			break;
 		}
-		await $.sleep(pptReadPeriod * 1000);
 		// 旧版PPT任务，新版使用 skip
 		try {
 			vue.next && vue.next();
@@ -396,6 +411,8 @@ async function watchFile(pptReadPeriod: number) {
 		try {
 			vue.skip && vue.skip();
 		} catch {}
+
+		await $.sleep(pptReadPeriod * 1000);
 	}
 }
 
@@ -431,16 +448,15 @@ async function next(type: 'classroomNow' | 'normal') {
 	const id = new URL(window.location.href).searchParams.get(field);
 	let nextObject: CourseType | undefined;
 	const data = ZJYProject.scripts.study.cfg.courseList;
-	for (let index = 0; index < data.length; index++) {
+	const start_index = data.findIndex((i) => i.id === id);
+	for (let index = start_index + 1; index < data.length; index++) {
 		const item = data[index];
 		// 跳过讨论
 		if (['测验', '讨论'].some((i) => item.fileType === i)) {
 			continue;
 		}
-		if (item.id === id) {
-			nextObject = data[index + 1];
-			break;
-		}
+		nextObject = item;
+		break;
 	}
 
 	if (id && nextObject) {
@@ -707,7 +723,7 @@ function workOrExam(
 	});
 
 	worker
-		.doWork({ enable_debug: true })
+		.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug })
 		.then(() => {
 			$message.info({ content: '作业/考试完成，请自行检查后保存或提交。', duration: 0 });
 			worker.emit('done');

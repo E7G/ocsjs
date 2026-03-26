@@ -1022,12 +1022,12 @@ export const ZHSProject = Project.create({
 			}
 		}),
 		'smart-study': new Script({
-			name: '🖥️ 智慧课程-学习脚本',
+			name: '🖥️ 新形态课程-学习脚本',
 			matches: [
-				['智慧课程学习页面', 'smartcoursestudent.zhihuishu.com/learnPage'],
-				['智慧课程新域名学习页面', 'ai-smart-course-student-pro.zhihuishu.com/learnPage'],
-				['智慧课程首页', 'smartcoursestudent.zhihuishu.com/singleCourse'],
-				['智慧课程新域名课程首页', 'ai-smart-course-student-pro.zhihuishu.com/singleCourse']
+				['新形态课程学习页面', 'smartcoursestudent.zhihuishu.com/learnPage'],
+				['新形态课程新域名学习页面', 'ai-smart-course-student-pro.zhihuishu.com/learnPage'],
+				['新形态课程首页', 'smartcoursestudent.zhihuishu.com/singleCourse'],
+				['新形态课程新域名课程首页', 'ai-smart-course-student-pro.zhihuishu.com/singleCourse']
 			],
 			namespace: 'zhs.smart.study',
 			configs: {
@@ -1101,23 +1101,19 @@ export const ZHSProject = Project.create({
 							}
 
 							let target_el;
-							let start = false;
-							for (let index = 0; index < cards.length; index++) {
+							const start_index = cards.findIndex((c) => c.classList.contains('active')) || 0;
+							for (let index = start_index + 1; index < cards.length; index++) {
 								const card = cards[index];
-								if (start) {
-									if (this.cfg.restudy) {
-										target_el = card;
-										break;
-									} else {
-										if (card.querySelector('.finished-icon')?.textContent?.includes('已完成')) {
-											continue;
-										}
-										target_el = card;
-										break;
+
+								if (this.cfg.restudy) {
+									target_el = card;
+									break;
+								} else {
+									if (card.querySelector('.finished-icon')?.textContent?.includes('已完成')) {
+										continue;
 									}
-								}
-								if (card.classList.contains('active')) {
-									start = true;
+									target_el = card;
+									break;
 								}
 							}
 							return target_el;
@@ -1194,25 +1190,28 @@ export const ZHSProject = Project.create({
 								if (nextJob) {
 									const nextJobTitle = nextJob.querySelector('.common-text') as HTMLElement;
 
-									/**
-									 * 链接任务点不会自动取消 active 样式，导致无法获取下一个任务点
-									 * 这里手动移除 active 样式，避免影响获取下一个任务点
-									 */
-									document
-										.querySelectorAll('[class*="card-container"].active')
-										.forEach((el) => el.classList.remove('active'));
-
 									if (include_jobs.some((job) => nextJob.querySelector('.icon-box')?.classList.contains(job))) {
 										nextJobTitle.click();
 										await doWork();
 									}
 									// 链接任务
 									else {
+										/**
+										 * 链接任务点不会自动取消 active 样式，导致无法获取下一个任务点
+										 * 这里手动移除 active 样式，避免影响获取下一个任务点
+										 */
+										document
+											.querySelectorAll('[class*="card-container"].active')
+											.forEach((el) => el.classList.remove('active'));
+
+										// 链接任务点不会自动附加 active 样式，这里手动添加
+										nextJob?.classList.add('active');
+
+										await $.sleep(1000);
+
 										const _open = $gm.unsafeWindow.open;
 										$gm.unsafeWindow.open = () => null;
 										nextJobTitle.click();
-										// 链接任务点不会自动附加 active 样式，这里手动添加
-										nextJob.querySelector('.basic-info-video-card-container')?.classList.add('active');
 
 										const msg = '链接任务完成，即将自动下一节！';
 										$message.info(msg);
@@ -1308,12 +1307,12 @@ export const ZHSProject = Project.create({
 			}
 		}),
 		'smart-work': new Script({
-			name: '✍️ 智慧课程-作业/掌握度脚本',
+			name: '✍️ 新形态课程-作业/考试/掌握度脚本',
 			matches: [
-				['智慧课程作业页面', 'smartcourseexam.zhihuishu.com/ReviewExam'],
-				['智慧课程-掌握提升页面', 'studentexamcomh5.zhihuishu.com/studentReviewTestOrExam'],
-				['智慧课程-AI助教掌握度', 'fusioncourseh5.zhihuishu.com/exam'],
-				['智慧课程-新AI助教掌握度', 'studywisdomh5.zhihuishu.com/exam']
+				['新形态课程作业页面', 'smartcourseexam.zhihuishu.com/ReviewExam'],
+				['新形态课程-掌握提升页面', 'studentexamcomh5.zhihuishu.com/studentReviewTestOrExam'],
+				['新形态课程-AI助教掌握度', 'fusioncourseh5.zhihuishu.com/exam'],
+				['新形态课程-新AI助教掌握度', 'studywisdomh5.zhihuishu.com/exam']
 			],
 			namespace: 'zhs.smart.work',
 			configs: {
@@ -1379,6 +1378,37 @@ export const ZHSProject = Project.create({
 				if (type === 'push') {
 					this.methods.start();
 				}
+			}
+		}),
+		'smart-exam': new Script({
+			name: '✍️ 新形态课程-考试脚本',
+			matches: [['新形态课程-考试界面', 'examloop.zhihuishu.com/exam']],
+			configs: {
+				notes: {
+					defaultValue: $ui.notes([
+						'自动答题前请在 “通用-全局设置” 中设置题库配置。',
+						'可以搭配 “通用-在线搜题” 一起使用。',
+						'⚠️ 如果没开始答题，请尝试刷新页面。',
+						'⚠️ 禁止一次性打开多个作业/考试页面。'
+					]).outerHTML
+				}
+			},
+			methods() {
+				return {
+					start: async () => {
+						// 检查是否为软件环境
+						CommonProject.scripts.render.methods.pin(this);
+						await waitForElement('.question-area-content');
+						commonWork(this, {
+							workerProvider: (opts) => {
+								return smartExam(undefined, opts);
+							}
+						});
+					}
+				};
+			},
+			oncomplete() {
+				this.methods.start();
 			}
 		}),
 		'xnk-study': new Script({
@@ -2065,6 +2095,32 @@ export const ZHSProject = Project.create({
 					start_delay_seconds: this.cfg.workDelay ?? 3
 				});
 			}
+		}),
+		'hike-homework': new Script({
+			matches: [['AI教学中心-题目作业', '/stu/answer-homework']],
+			name: '✍️ 教学空间-AI智慧课程-题目作业脚本',
+			namespace: 'zhs.hike.homework',
+			configs: {
+				notes: workNotes,
+				workDelay: {
+					label: '作业答题开始时间延迟（秒）',
+					defaultValue: 3,
+					attrs: { type: 'number', min: 1, step: 1, max: 10 }
+				}
+			},
+			async oncomplete() {
+				// 检查是否为软件环境
+				CommonProject.scripts.render.methods.pin(this);
+
+				await waitForElement('.question-item');
+
+				commonWork(this, {
+					workerProvider: (opts) => {
+						return hikeHomework(undefined, opts);
+					},
+					start_delay_seconds: this.cfg.workDelay ?? 3
+				});
+			}
 		})
 	}
 });
@@ -2577,6 +2633,11 @@ function smartWork(
 	{ answererWrappers, period, thread, answerSeparators, answerMatchMode }: CommonWorkOptions
 ) {
 	$message.info({ content: '开始作业' });
+	$message.warn({
+		content: '⚠️ 答题中请勿进行任何操作，如需暂停答题，请等待全部题目搜索完成并执行自动保存功能后才能操作。',
+		duration: 0,
+		closeable: false
+	});
 
 	CommonProject.scripts.workResults.methods.init();
 
@@ -2701,7 +2762,157 @@ function smartWork(
 		}
 		let count = 0;
 		while (worker.isClose === false) {
-			await worker.doWork({ enable_debug: true });
+			await worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug });
+			next = getNextBtn();
+			if (!next) {
+				break;
+			}
+
+			await $.sleep(1000);
+			if (remotePage) await remotePage.click(next);
+			else next.click();
+			// 等待题目加载
+			await $.sleep(1000);
+			count++;
+		}
+
+		$message.info({
+			content: '作业/考试完成，请自行检查后保存或提交。',
+			duration:
+				// 题目过多则不自动关闭
+				count > 10 ? 0 : 30
+		});
+		worker.emit('done');
+		// 答题完成后，题库选项点击才会同步题目，否则会导致题目错乱
+		CommonProject.scripts.workResults.cfg.questionPositionSyncHandlerType = 'zhs-smart';
+	})();
+	return worker;
+}
+
+function smartExam(
+	remotePage: RemotePage | undefined,
+	{ answererWrappers, period, thread, answerSeparators, answerMatchMode }: CommonWorkOptions
+) {
+	$message.info({ content: '开始作业' });
+	$message.warn({
+		content: '⚠️ 答题中请勿进行任何操作，如需暂停答题，请等待全部题目搜索完成并执行自动保存功能后才能操作。',
+		duration: 0,
+		closeable: false
+	});
+
+	CommonProject.scripts.workResults.methods.init();
+
+	const titleTransform = (titles: (HTMLElement | undefined)[]) => {
+		return titles
+			.filter((t) => t?.innerText)
+			.map((t) => (t ? optimizationElementWithImage(t).innerText : ''))
+			.join(',');
+	};
+
+	const workResults: SimplifyWorkResult[] = [];
+	let totalQuestionCount = 0;
+	let requestedCount = 0;
+	let resolvedCount = 0;
+
+	const worker = new OCSWorker({
+		root: '.question-area-content',
+		elements: {
+			type: 'div.flex.items-center.mb-\\[16px\\]',
+			title: 'div.flex-1 .mb-\\[32px\\] .text-mainText.font-medium',
+			options: 'label.user-select.group'
+		},
+		thread: thread ?? 1,
+		answerSeparators: answerSeparators.split(',').map((s) => s.trim()),
+		answerMatchMode: answerMatchMode,
+		/** 默认搜题方法构造器 */
+		answerer: (elements, ctx) => {
+			const title = titleTransform(elements.title);
+			if (title) {
+				return CommonProject.scripts.apps.methods.searchAnswerInCaches(title, async () => {
+					await $.sleep((period ?? 3) * 1000);
+					return defaultAnswerWrapperHandler(answererWrappers, {
+						type: ctx.type || 'unknown',
+						title,
+						options: ctx.elements.options.map((o) => o.innerText).join('\n')
+					});
+				});
+			} else {
+				throw new Error('题目为空，请查看题目是否为空，或者忽略此题');
+			}
+		},
+		work: {
+			type(ctx) {
+				const type = ctx.elements.type[0].textContent;
+				if (type?.includes('单选题')) {
+					return 'single';
+				} else if (type?.includes('多选题')) {
+					return 'multiple';
+				} else if (type?.includes('判断题')) {
+					return 'judgement';
+				} else if (type?.includes('填空')) {
+					return 'completion';
+				} else {
+					return undefined;
+				}
+			},
+			/** 自定义处理器 */
+			async handler(type, answer, option, ctx) {
+				if (type === 'judgement' || type === 'single' || type === 'multiple') {
+					// mainBg 为已经选择的选项的背景色，未选择的选项没有这个类
+					if (option.querySelector<HTMLElement>('div.bg-mainBg') === null) {
+						if (remotePage) {
+							await remotePage.click(option);
+						} else {
+							option.click();
+						}
+						await $.sleep(200);
+					}
+				}
+			}
+		},
+		/**
+		 * 作业都是一题一题做的，不像其他自动答题一样可以获取全部试卷内容。
+		 * 所以只能根据自定义的状态进行搜索结果的显示。
+		 */
+		onResultsUpdate(current, _, res) {
+			if (current.result) {
+				workResults.push(...simplifyWorkResult([current], titleTransform));
+				CommonProject.scripts.workResults.methods.setResults(workResults);
+				totalQuestionCount++;
+				requestedCount++;
+				resolvedCount++;
+			}
+
+			if (current.result?.finish) {
+				CommonProject.scripts.apps.methods.addQuestionCacheFromWorkResult(
+					simplifyWorkResult([current], titleTransform)
+				);
+			}
+			CommonProject.scripts.workResults.methods.updateWorkState({
+				totalQuestionCount,
+				requestedCount,
+				resolvedCount
+			});
+		}
+	});
+
+	const getNextBtn = () =>
+		Array.from(document.querySelectorAll('button')).find((btn) =>
+			btn.textContent?.includes('下一题')
+		) as HTMLElement | null;
+	let next = null as HTMLElement | null;
+
+	(async () => {
+		// 从第一题开始
+		const first = document.querySelector<HTMLElement>('.grid.grid-cols-7 > button');
+		if (first) {
+			if (remotePage) await remotePage.click(first);
+			else first.click();
+			await $.sleep(3000);
+		}
+		let count = 0;
+		while (worker.isClose === false) {
+			await worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug });
 			next = getNextBtn();
 			if (!next) {
 				break;
@@ -2959,7 +3170,7 @@ function hikeWork(
 		}
 
 		while (next && worker.isClose === false) {
-			await worker.doWork({ enable_debug: true });
+			await worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug });
 			next = getNextBtn();
 			if (next) {
 				await $.sleep(1000);
@@ -2976,6 +3187,108 @@ function hikeWork(
 		// 答题完成后，题库选项点击才会同步题目，否则会导致题目错乱
 		CommonProject.scripts.workResults.cfg.questionPositionSyncHandlerType = 'zhs-hike';
 	})();
+
+	return worker;
+}
+
+function hikeHomework(
+	remotePage: RemotePage | undefined,
+	{ answererWrappers, period, thread, answerSeparators, answerMatchMode }: CommonWorkOptions
+) {
+	$message.info({ content: '开始作业' });
+
+	// CommonProject.scripts.workResults.methods.init({
+	// 	questionPositionSyncHandlerType: 'zhs-hike'
+	// });
+
+	const titleTransform = (titles: (HTMLElement | undefined)[]) => {
+		return titles
+			.filter((t) => t?.innerText)
+			.map((t) => (t ? optimizationElementWithImage(t).innerText : ''))
+			.join(',');
+	};
+
+	const worker = new OCSWorker({
+		root: '.question-item',
+		elements: {
+			type: '.title-box,.combination-title',
+			title: '.qeustion-content > span, .combination-content > span',
+			options: '.option-item, .vditor-content'
+		},
+		thread: thread ?? 1,
+		answerSeparators: answerSeparators.split(',').map((s) => s.trim()),
+		answerMatchMode: answerMatchMode,
+		/** 默认搜题方法构造器 */
+		answerer: (elements, ctx) => {
+			const title = titleTransform(elements.title);
+			if (title) {
+				return CommonProject.scripts.apps.methods.searchAnswerInCaches(title, async () => {
+					await $.sleep((period ?? 3) * 1000);
+					return defaultAnswerWrapperHandler(answererWrappers, {
+						type: ctx.type || 'unknown',
+						title,
+						options: ctx.elements.options.map((o) => o.innerText).join('\n')
+					});
+				});
+			} else {
+				throw new Error('题目为空，请查看题目是否为空，或者忽略此题');
+			}
+		},
+		work: {
+			type(ctx) {
+				const type = ctx.elements.type[0].textContent;
+				if (type?.includes('单选')) {
+					return 'single';
+				} else if (type?.includes('多选')) {
+					return 'multiple';
+				} else if (type?.includes('判断')) {
+					return 'judgement';
+				} else if (type?.includes('问答')) {
+					return 'completion';
+				} else {
+					return undefined;
+				}
+			},
+			/** 自定义处理器 */
+			async handler(type, answer, option, ctx) {
+				if (type === 'judgement' || type === 'single' || type === 'multiple') {
+					if (remotePage) {
+						await remotePage.click(option);
+					} else {
+						option.click();
+					}
+					await $.sleep(200);
+				} else if (type === 'completion') {
+					const textarea = option.querySelector('.vditor-reset');
+					if (textarea) textarea.innerHTML = `<p data-block="0">${answer.trim()}</p>`;
+				}
+			}
+		},
+
+		/**
+		 * 作业都是一题一题做的，不像其他自动答题一样可以获取全部试卷内容。
+		 * 所以只能根据自定义的状态进行搜索结果的显示。
+		 */
+		onResultsUpdate(current, _, res) {
+			if (current.result) {
+				CommonProject.scripts.workResults.methods.setResults(simplifyWorkResult(res, titleTransform));
+			}
+
+			if (current.result?.finish) {
+				CommonProject.scripts.apps.methods.addQuestionCacheFromWorkResult(
+					simplifyWorkResult([current], titleTransform)
+				);
+			}
+			CommonProject.scripts.workResults.methods.updateWorkStateByResults(res);
+		}
+	});
+
+	worker.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug }).then(() => {
+		$message.info({ content: '作业/考试完成，请自行检查后保存或提交。', duration: 0 });
+		worker.emit('done');
+		// 答题完成后，题库选项点击才会同步题目，否则会导致题目错乱
+		CommonProject.scripts.workResults.cfg.questionPositionSyncHandlerType = 'zhs-hike';
+	});
 
 	return worker;
 }

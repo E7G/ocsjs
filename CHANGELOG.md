@@ -1,3 +1,69 @@
+## [4.12.30](https://github.com/ocsjs/ocsjs/compare/4.12.29...4.12.30) (2026-03-20)
+
+
+### Performance Improvements
+
+* **script:** 添加智慧树新智慧形态考试菜单进入菜单栏 ([d9d362b](https://github.com/ocsjs/ocsjs/commit/d9d362bdc5d9bbd3de04019dede94c856d68ac77))
+
+
+
+## [4.12.29](https://github.com/ocsjs/ocsjs/compare/4.12.26...4.12.29) (2026-03-20)
+
+
+### Bug Fixes
+
+* **script:** 兼容职教云xls任务点自动学习 ([7a3a174](https://github.com/ocsjs/ocsjs/commit/7a3a1748d85d617c740ce631b5d2b52cf5cec80f))
+* **script:** 修复智慧树-新形态课程链接任务点无法跳过的BUG ([51a639d](https://github.com/ocsjs/ocsjs/commit/51a639d4b80a8851e347e1190f94d1cdc5f7f4a5))
+
+
+### Features
+
+* **script:** 添加智慧树-新形态课程自动考试功能 ([587a045](https://github.com/ocsjs/ocsjs/commit/587a045ff454e20b5ecef7d509c0fb25f43af4db))
+
+
+
+## [4.12.26](https://github.com/ocsjs/ocsjs/compare/4.12.23...4.12.26) (2026-03-18)
+
+
+### Bug Fixes
+
+* **script:** 修复职教云PPT仅有2页时无法完成的BUG ([018462f](https://github.com/ocsjs/ocsjs/commit/018462f2746816f70439270e669756aa87240b03))
+* **script:** 修复智慧职教AI测验答题时填空功能失效的BUG ([d850bea](https://github.com/ocsjs/ocsjs/commit/d850bea91b70780d23706eea433756812c6c6016))
+
+
+### Features
+
+* **script:** 添加新版职教云自动跳转旧版功能 ([55a9f1e](https://github.com/ocsjs/ocsjs/commit/55a9f1e198a71d8e8dd163cda4fdadfa8106c925))
+
+
+
+## [4.12.23](https://github.com/ocsjs/ocsjs/compare/4.12.22...4.12.23) (2026-03-17)
+
+
+### Bug Fixes
+
+* 修复上个版本无法打包的BUG ([97608d8](https://github.com/ocsjs/ocsjs/commit/97608d81991ce1e0f262e2e09f1252a4839996af))
+
+
+
+## [4.12.22](https://github.com/ocsjs/ocsjs/compare/4.12.16...4.12.22) (2026-03-17)
+
+
+### Bug Fixes
+
+* **script:** 添加智慧树-AI教学中心-题目作业自动答题功能 ([2a630aa](https://github.com/ocsjs/ocsjs/commit/2a630aade1c71b78e2fd1275f1f9713b2bbf21f6))
+* **script:** 修复图片题中的图片在解析时重复出现的BUG ([84c697e](https://github.com/ocsjs/ocsjs/commit/84c697e1b681aa11c397cf335cd2730d00e7160c))
+* **script:** 修复职教云资源库无法跳过测验的问题 ([34e4f38](https://github.com/ocsjs/ocsjs/commit/34e4f38310fc887b27cb71c5b8d1b6132c3b9f03))
+* **script:** 修复智慧职教AI测验答题时无法填空的BUG ([edb492a](https://github.com/ocsjs/ocsjs/commit/edb492af72d6d8cd09e2146b6e39ecfe68c135f7))
+
+
+### Performance Improvements
+
+* 更新API，添加新API $msg，可同时显示气泡和打印日志 ([099907a](https://github.com/ocsjs/ocsjs/commit/099907ae72be2cc50874162667528e1c6d643b8b))
+* 添加答题日志输出开关功能 ([d041373](https://github.com/ocsjs/ocsjs/commit/d04137339f023270f390c9344be74df854008181))
+
+
+
 ## [4.12.16](https://github.com/ocsjs/ocsjs/compare/4.12.15...4.12.16) (2026-03-06)
 
 

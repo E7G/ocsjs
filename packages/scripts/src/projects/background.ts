@@ -508,6 +508,11 @@ export const BackgroundProject = Project.create({
 					defaultValue: true,
 					label: '软件辅助点击时显示鼠标位置',
 					attrs: { type: 'checkbox' }
+				},
+				enable_answerer_debug: {
+					defaultValue: true,
+					label: '开启答题日志输出',
+					attrs: { type: 'checkbox' }
 				}
 			},
 			methods() {
@@ -930,6 +935,7 @@ export const BackgroundProject = Project.create({
 					ZHSProject.scripts['xnk-work'],
 					ZHSProject.scripts['hike-work'],
 					ZHSProject.scripts['smart-work'],
+					ZHSProject.scripts['smart-exam'],
 					ZHSProject.scripts['xnk-work'],
 					[ICourseProject.scripts.dispatcher, ICourseProject.scripts.study],
 					ICourseProject.scripts.work,
