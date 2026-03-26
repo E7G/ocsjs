@@ -1107,13 +1107,19 @@ const CXAnalyses = {
 			if (after && after.textContent?.trim()) {
 				return after;
 			}
+			const nextEl = after?.nextElementSibling;
+			if (nextEl) {
+				const innerEl = nextEl.querySelector?.('.fl:not(.after)');
+				if (innerEl?.textContent?.trim()) {
+					return innerEl;
+				}
+				if (nextEl.textContent?.trim()) {
+					return nextEl as HTMLElement;
+				}
+			}
 			const textEl = font.querySelector('.fl:not(.after)');
 			if (textEl?.textContent?.trim()) {
 				return textEl;
-			}
-			const nextEl = after?.nextElementSibling;
-			if (nextEl?.textContent?.trim()) {
-				return nextEl as HTMLElement;
 			}
 			return after ?? font;
 		}) as HTMLElement[];
