@@ -1880,15 +1880,14 @@ const JobRunner = {
 
 					const handler: DefaultWork<any>['handler'] = (type, answer, option, ctx) => {
 						if (type === 'judgement' || type === 'single' || type === 'multiple') {
-							// 检查是否已经选择
+							const li = option?.closest('li');
 							const checked =
 								option?.parentElement?.querySelector('label input')?.getAttribute('checked') === 'checked' ||
-								// 适配2023/9月最新版本
-								option?.parentElement?.getAttribute('aria-checked') === 'true';
+								li?.getAttribute('aria-checked') === 'true';
 							if (checked) {
 								// 跳过
 							} else {
-								option?.click();
+								(li ?? option)?.click();
 							}
 						} else if (type === 'completion' && answer.trim()) {
 							const text = option?.parentElement?.querySelector('textarea');
@@ -1906,9 +1905,21 @@ const JobRunner = {
 						}
 					};
 
+					const uniqueOptions = (() => {
+						const seenLi = new Set<Element>();
+						return elements.options.filter((option) => {
+							const li = option.closest('li');
+							if (li) {
+								if (seenLi.has(li)) return false;
+								seenLi.add(li);
+							}
+							return true;
+						});
+					})();
+
 					return await resolver(
 						searchInfos,
-						elements.options.map((option) => optimizationElementWithImage(option)),
+						uniqueOptions.map((option) => optimizationElementWithImage(option)),
 						handler
 					);
 				}
