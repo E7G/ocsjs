@@ -1104,21 +1104,7 @@ const CXAnalyses = {
 	getSecretFont(doc: Document = document) {
 		return Array.from(doc.querySelectorAll('.font-cxsecret')).map((font) => {
 			const after = font.querySelector('.after');
-			if (after) {
-				const textEl = after.parentElement?.querySelector('.fl:not(.after)');
-				if (textEl) {
-					return textEl;
-				}
-				if (after.textContent?.trim()) {
-					return after;
-				}
-				const nextEl = after.nextElementSibling;
-				if (nextEl && nextEl.textContent?.trim()) {
-					return nextEl as HTMLElement;
-				}
-				return after;
-			}
-			return font;
+			return after === null ? font : after;
 		}) as HTMLElement[];
 	},
 	/**
