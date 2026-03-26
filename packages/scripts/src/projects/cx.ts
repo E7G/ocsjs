@@ -776,21 +776,28 @@ function workOrExam(
 							options:
 								ctx.type === 'completion'
 									? ''
-									: ctx.elements.options
-											.map((o) => {
-												const text = optimizationElementWithImage(o, true).innerText?.trim();
-												if (text) return text;
-												const li = o.closest('li');
-												if (li) {
-													const fl = li.querySelector('.fl:not(.after):not(.before)');
-													if (fl?.textContent?.trim()) {
-														return fl.textContent.trim();
+									: (() => {
+											const seenLi = new Set<Element>();
+											return ctx.elements.options
+												.map((o) => {
+													const li = o.closest('li');
+													if (li) {
+														if (seenLi.has(li)) return '';
+														seenLi.add(li);
 													}
-												}
-												return '';
-											})
-											.filter(Boolean)
-											.join('\n')
+													const text = optimizationElementWithImage(o, true).innerText?.trim();
+													if (text) return text;
+													if (li) {
+														const fl = li.querySelector('.fl:not(.after):not(.before)');
+														if (fl?.textContent?.trim()) {
+															return fl.textContent.trim();
+														}
+													}
+													return '';
+												})
+												.filter(Boolean)
+												.join('\n');
+										})()
 						});
 					});
 				} else {
@@ -1834,21 +1841,28 @@ const JobRunner = {
 							options:
 								ctx.type === 'completion'
 									? ''
-									: ctx.elements.options
-											.map((o) => {
-												const text = optimizationElementWithImage(o, true).innerText?.trim();
-												if (text) return text;
-												const li = o.closest('li');
-												if (li) {
-													const fl = li.querySelector('.fl:not(.after):not(.before)');
-													if (fl?.textContent?.trim()) {
-														return fl.textContent.trim();
+									: (() => {
+											const seenLi = new Set<Element>();
+											return ctx.elements.options
+												.map((o) => {
+													const li = o.closest('li');
+													if (li) {
+														if (seenLi.has(li)) return '';
+														seenLi.add(li);
 													}
-												}
-												return '';
-											})
-											.filter(Boolean)
-											.join('\n')
+													const text = optimizationElementWithImage(o, true).innerText?.trim();
+													if (text) return text;
+													if (li) {
+														const fl = li.querySelector('.fl:not(.after):not(.before)');
+														if (fl?.textContent?.trim()) {
+															return fl.textContent.trim();
+														}
+													}
+													return '';
+												})
+												.filter(Boolean)
+												.join('\n');
+										})()
 						});
 					});
 				} else {
