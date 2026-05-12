@@ -1,3 +1,97 @@
+## [4.13.6](https://github.com/ocsjs/ocsjs/compare/4.13.4...4.13.6) (2026-05-12)
+
+
+### Bug Fixes
+
+* **script:** 适配智慧树-智慧课程-AI学伴掌握度无法答题的问题 ([ce6262f](https://github.com/ocsjs/ocsjs/commit/ce6262fabaa3edcf38056863c7c30319ff5ece48))
+
+
+### Performance Improvements
+
+* **script:** 修改题库配置按钮文案，优化题库配置界面文案，主次分明 ([3d237ea](https://github.com/ocsjs/ocsjs/commit/3d237ea7c2284c7560ef6fe8801b5491ed3e6dfc))
+
+
+
+## [4.13.4](https://github.com/ocsjs/ocsjs/compare/4.13.2...4.13.4) (2026-04-23)
+
+
+### Features
+
+* **script:** 兼容超星长时阅读任务点（限制翻页时间） ([ac34ba2](https://github.com/ocsjs/ocsjs/commit/ac34ba2d543afe9dc09c1803b558f7b37dbce095))
+* **script:** 添加超星域名支持：jnzyjsxy.cn ([a27cb49](https://github.com/ocsjs/ocsjs/commit/a27cb49b9111e3317120c33eff75981de4b19ed8))
+
+
+
+## [4.13.2](https://github.com/ocsjs/ocsjs/compare/4.12.39...4.13.2) (2026-04-22)
+
+
+### Bug Fixes
+
+* **script:** 修复智慧树26年上半年studywisdomh5复习模式错误的问题 ([2e82a0a](https://github.com/ocsjs/ocsjs/commit/2e82a0a8ea4cca4265ba592336a2762bf156ec08))
+
+
+### Features
+
+* **script:** 兼容雨课堂AI学伴自动学习 ([c96f4db](https://github.com/ocsjs/ocsjs/commit/c96f4db7d949df6f3fc983a6ae4783ece9b19783))
+
+
+
+## [4.12.39](https://github.com/ocsjs/ocsjs/compare/4.12.38...4.12.39) (2026-04-20)
+
+
+### Bug Fixes
+
+* 修复智慧职教题目识别丢失img的src问题 ([482ac64](https://github.com/ocsjs/ocsjs/commit/482ac64f6d9ee0dc54a8bef1fe210ccb4b02d25a))
+* 修复智慧职教题目识别丢失img的src问题,使用与学习通页面相同的方法 ([488f467](https://github.com/ocsjs/ocsjs/commit/488f467a8c212e17a866f0746e86a6c0084f1e2b))
+* 修复智慧职教题目识别丢失img的src问题,使用与学习通页面相同的方法,且考虑纯图片无法识别问题 ([3a23e04](https://github.com/ocsjs/ocsjs/commit/3a23e04d89bb7913638ec880e9817aaa013143ba))
+* 修复智慧职教题目识别丢失img的src问题,使用与学习通页面相同的方法,且考虑纯图片无法识别问题 ([d020954](https://github.com/ocsjs/ocsjs/commit/d0209548c56f6205b7c9edf4fe7ef84f334d03ec))
+
+
+
+## [4.12.38](https://github.com/ocsjs/ocsjs/compare/4.12.37...4.12.38) (2026-04-20)
+
+
+### Bug Fixes
+
+* **script:** 兼容26年上半年智慧树新版studywisdomh5网课更新 ([cf52bf0](https://github.com/ocsjs/ocsjs/commit/cf52bf019b3f9c36c82bc5b90e5e3125510ff3cb))
+
+
+
+## [4.12.37](https://github.com/ocsjs/ocsjs/compare/4.12.32...4.12.37) (2026-04-15)
+
+
+### Bug Fixes
+
+* **script:** 修复超星某些章节测试无法自动答题的BUG ([62b0aaf](https://github.com/ocsjs/ocsjs/commit/62b0aaf86416a07051513e7fbebcce94f29c12cc))
+
+
+### Features
+
+* **script:** 添加智慧树2026上学期新版HIKE AI教学中心视频学习功能 ([392a1a5](https://github.com/ocsjs/ocsjs/commit/392a1a59d5c352e0ca893bf72799cce9333e7f08))
+
+
+### Performance Improvements
+
+* **script:** 适配超星积分课的阅读任务不会自动开始阅读的问题 ([9b8ff4f](https://github.com/ocsjs/ocsjs/commit/9b8ff4f4e34b3e9de6e4c863b10b24bc7d7cf607))
+* **script:** 添加超星阅读界面的使用提示 ([a8aa869](https://github.com/ocsjs/ocsjs/commit/a8aa8695efe8fb1c74baaab106c4c2401f86de53))
+* **script:** 优化超星跳转时间太长的问题，改成智能等待时间 ([6314616](https://github.com/ocsjs/ocsjs/commit/631461620821559ea1bf068ba2445308df4995f1))
+
+
+
+## [4.12.32](https://github.com/ocsjs/ocsjs/compare/4.12.30...4.12.32) (2026-04-09)
+
+
+### Bug Fixes
+
+* **script:** 尝试修复智慧树AI学伴课程过一段时间才会播放的BUG ([7c56dc9](https://github.com/ocsjs/ocsjs/commit/7c56dc925284dd8ac5237da0a6fd9b7dae643264))
+
+
+### Performance Improvements
+
+* **script:** 优化超星闯关模式重复提示 ([fd83815](https://github.com/ocsjs/ocsjs/commit/fd83815150eced1e8caf8d11493ab9841187c49c))
+
+
+
 ## [4.12.30](https://github.com/ocsjs/ocsjs/compare/4.12.29...4.12.30) (2026-03-20)
 
 
