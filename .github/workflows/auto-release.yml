@@ -73,7 +73,6 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install pnpm -g
-          node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.pnpm=p.pnpm||{};p.pnpm.onlyBuiltDependencies=p.pnpm.onlyBuiltDependencies||[];if(!p.pnpm.onlyBuiltDependencies.includes('es5-ext')){p.pnpm.onlyBuiltDependencies.push('es5-ext')}fs.writeFileSync('package.json',JSON.stringify(p,null,'\t')+'\n')"
           pnpm install -w
           cd packages/scripts
           pnpm install
