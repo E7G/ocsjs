@@ -73,6 +73,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install pnpm -g
+          rm -f pnpm-lock.yaml
           pnpm install -w
           cd packages/scripts
           pnpm install
