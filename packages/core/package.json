@@ -35,7 +35,7 @@
 		"@types/tampermonkey": "^4.0.5",
 		"dotenv": "^16.0.3",
 		"rollup-plugin-visualizer": "^5.9.0",
-		"typedoc": "^0.28.0",
+		"typedoc": "^0.23.23",
 		"vite": "^2.9.15",
 		"vite-plugin-banner": "^0.6.1"
 	},
