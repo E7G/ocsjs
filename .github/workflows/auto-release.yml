@@ -73,6 +73,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install pnpm -g
+          pnpm approve-builds es5-ext || true
           pnpm install -w
           cd packages/scripts
           pnpm install
