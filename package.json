@@ -74,6 +74,6 @@
 		"@microsoft/tsdoc": "^0.14.2"
 	},
 	"pnpm": {
-		"onlyBuiltDependencies": ["es5-ext"]
+		"neverBuiltDependencies": []
 	}
 }
