@@ -73,10 +73,9 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install pnpm -g
-          rm -f pnpm-lock.yaml
-          pnpm install -w
+          pnpm install -w --ignore-scripts=false
           cd packages/scripts
-          pnpm install
+          pnpm install --ignore-scripts=false
           cd ../../
           npm run tsc
       - name: Build ocs scripts
