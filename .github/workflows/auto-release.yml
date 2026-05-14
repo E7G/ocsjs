@@ -72,10 +72,9 @@ jobs:
           echo "TAG_NAME=v${VERSION}" >> $GITHUB_ENV
       - name: Install Dependencies
         run: |
-          npm install pnpm -g
-          pnpm install -w
+          npm install
           cd packages/scripts
-          pnpm install
+          npm install
           cd ../../
           npm run tsc
       - name: Build ocs scripts

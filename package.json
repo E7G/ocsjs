@@ -8,15 +8,18 @@
 		"lib",
 		"dist"
 	],
+	"workspaces": [
+		"packages/*"
+	],
 	"scripts": {
 		"dev": "gulp -f ./scripts/dev-core.js & npm run changelog:simplify",
 		"build": "gulp -f ./scripts/build-core.js",
-		"tsc": "pnpm lint && gulp -f ./scripts/tsc.js",
-		"lint": "pnpm format && eslint  ./packages --ext .ts,.tsx,.js,.jsx --fix",
+		"tsc": "npm run lint && gulp -f ./scripts/tsc.js",
+		"lint": "npm run format && eslint  ./packages --ext .ts,.tsx,.js,.jsx --fix",
 		"format": "prettier -c ./.prettierrc.json  **/*.ts  **/*.js  **/*.css  --write",
 		"release": "sh ./scripts/release.sh",
-		"pub:minor": "npm version minor && pnpm build:core && npm publish",
-		"pub:major": "npm version major && pnpm build:core && npm publish",
+		"pub:minor": "npm version minor && npm run build:core && npm publish",
+		"pub:major": "npm version major && npm run build:core && npm publish",
 		"changelog:simplify": "gulp -f ./scripts/simplify_changelog.js",
 		"changelog": "conventional-changelog -p angular -i CHANGELOG.md --same-file -r 0",
 		"changelog:current": "conventional-changelog -p angular -o CHANGELOG_CURRENT.md -r 1",
@@ -72,8 +75,5 @@
 	},
 	"dependencies": {
 		"@microsoft/tsdoc": "^0.14.2"
-	},
-	"pnpm": {
-		"neverBuiltDependencies": []
 	}
 }
