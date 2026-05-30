@@ -1,5 +1,5 @@
 import { QuestionResolver, WorkContext } from './interface';
-import { resolvePlainAnswer, splitAnswer } from './utils';
+import { normalizeChoiceAnswer, resolvePlainAnswer, splitAnswer } from './utils';
 import { answerSimilar, removeRedundant, clearString, answerExactMatch } from '../utils/string';
 import { StringUtils } from '../../utils/string';
 import { Rating } from 'string-similarity';
@@ -16,7 +16,11 @@ export function createDefaultQuestionResolver<E>(
 		 */
 		async single(infos, options, handler) {
 			const allAnswer = infos
-				.map((res) => res.results.map((res) => splitAnswer(res.answer, ctx.answerSeparators)).flat())
+				.map((res) =>
+					res.results
+						.map((res) => splitAnswer(normalizeChoiceAnswer(res.answer), ctx.answerSeparators))
+						.flat()
+				)
 				.flat();
 			const optionStrings = options.map((o) => removeRedundant(o.innerText));
 			let ratings: Rating[] = [];
@@ -57,9 +61,9 @@ export function createDefaultQuestionResolver<E>(
 			// 是否为纯ABCD答案
 			for (const info of infos) {
 				for (const res of info.results) {
-					const ans = StringUtils.nowrap(res.answer, '').trim();
-					if (ans.length === 1 && /[A-Z]/.test(ans)) {
-						const index = ans.charCodeAt(0) - 65;
+					const ans = normalizeChoiceAnswer(StringUtils.nowrap(res.answer, '').trim());
+					if (ans.length === 1 && /[A-D]/i.test(ans)) {
+						const index = ans.toUpperCase().charCodeAt(0) - 65;
 						if (options[index] === undefined) {
 							continue;
 						}
@@ -205,7 +209,7 @@ export function createDefaultQuestionResolver<E>(
 				const ans = StringUtils.nowrap(result.answer, '').trim();
 				const plainAnswer = resolvePlainAnswer(ans);
 				if (plainAnswer) {
-					for (const char of ans) {
+					for (const char of plainAnswer) {
 						const index = char.charCodeAt(0) - 65;
 						if (options[index] === undefined) {
 							continue;

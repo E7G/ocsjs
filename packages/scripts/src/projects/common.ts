@@ -16,6 +16,7 @@ import { enableCopy } from '../utils';
 import { SearchInfosElement } from '../elements/search.infos';
 import { RenderScript } from '../render';
 import { dropdownStyle } from '../utils/configs';
+import { getYuketangExamQuestionRoots } from '../utils/yuketang-exam';
 
 const TAB_WORK_RESULTS_KEY = 'common.work-results.results';
 
@@ -68,7 +69,7 @@ const state = {
 				document.querySelectorAll<HTMLElement>('.question-item').item(index)?.scrollIntoView({ behavior: 'smooth' });
 			},
 			yuketang: (index: number) => {
-				document.querySelectorAll<HTMLElement>('.subject-item').item(index)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+				getYuketangExamQuestionRoots()[index]?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			}
 		}
 	},

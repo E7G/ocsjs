@@ -4,6 +4,7 @@ import { $msg, playMedia, CommonWorkOptions } from '../utils';
 import { restudy, volume, workNotes } from '../utils/configs';
 import { waitForElement } from '../utils/study';
 import { commonWork, simplifyWorkResult, optimizationElementWithImage } from '../utils/work';
+import { getYuketangExamQuestionRoots } from '../utils/yuketang-exam';
 import { CommonProject } from './common';
 import { BackgroundProject } from './background';
 
@@ -230,7 +231,7 @@ function workOrExam(
 	};
 
 	const worker = new OCSWorker({
-		root: '.subject-item',
+		root: getYuketangExamQuestionRoots(),
 		elements: {
 			title: '.item-body h4.exam-font, .item-body > h4',
 			options: '.list-unstyled-radio li label.el-radio, .list-unstyled-checkbox li label.el-checkbox',

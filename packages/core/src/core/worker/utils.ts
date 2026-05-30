@@ -22,6 +22,45 @@ export function defaultWorkTypeResolver(ctx: WorkContext<any>): QuestionTypes | 
 		: undefined;
 }
 
+/**
+ * 规范化选择题答案（AI 常返回「答案：B. 原码」「A. -101」等格式）
+ * 单选返回单个字母；多选返回连续字母如 ABC
+ */
+export function normalizeChoiceAnswer(answer: string): string {
+	if (!answer?.trim()) {
+		return answer;
+	}
+
+	let s = answer
+		.trim()
+		.replace(/[\s\S]*?<\/think>\s*/gi, '')
+		.replace(/^答案[：:]\s*/i, '')
+		.trim();
+
+	if (/[A-Da-d]\s*[#、,，]\s*[A-Da-d]/i.test(s)) {
+		const letters = s.match(/[A-Da-d]/gi);
+		if (letters && letters.length > 1) {
+			return letters.map((l) => l.toUpperCase()).join('');
+		}
+	}
+
+	const letterWithSuffix = s.match(/^([A-Da-d])\s*[.、．:：)\s]/);
+	if (letterWithSuffix) {
+		return letterWithSuffix[1].toUpperCase();
+	}
+
+	if (/^[A-Da-d]$/i.test(s)) {
+		return s.toUpperCase();
+	}
+
+	const picked = s.match(/(?:选|答案[是为]\s*)([A-Da-d])\b/i);
+	if (picked) {
+		return picked[1].toUpperCase();
+	}
+
+	return s;
+}
+
 /** 判断答案是否为A-Z的文本, 并且字符序号依次递增, 并且 每个字符是否都只出现了一次 */
 export function isPlainAnswer(answer: string) {
 	answer = answer.trim();
@@ -52,7 +91,7 @@ export function isPlainAnswer(answer: string) {
  * @param answer  答案
  */
 export function resolvePlainAnswer(answer: string) {
-	const resolve = answer
+	const resolve = normalizeChoiceAnswer(answer)
 		.trim()
 		.replace(/[,，、 #]/g, '')
 		.trim();
