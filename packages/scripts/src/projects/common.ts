@@ -66,6 +66,9 @@ const state = {
 			},
 			uxy: (index: number) => {
 				document.querySelectorAll<HTMLElement>('.question-item').item(index)?.scrollIntoView({ behavior: 'smooth' });
+			},
+			yuketang: (index: number) => {
+				document.querySelectorAll<HTMLElement>('.subject-item').item(index)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
 			}
 		}
 	},

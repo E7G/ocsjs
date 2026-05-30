@@ -1,9 +1,11 @@
 import { $, $elements, Project, Script, $message, $modal, $el } from 'easy-us';
-import { $msg, playMedia } from '../utils';
-import { request } from '@ocsjs/core';
-import { restudy, volume } from '../utils/configs';
+import { OCSWorker, defaultAnswerWrapperHandler, createDefaultQuestionResolver, request } from '@ocsjs/core';
+import { $msg, playMedia, CommonWorkOptions } from '../utils';
+import { restudy, volume, workNotes } from '../utils/configs';
 import { waitForElement } from '../utils/study';
+import { commonWork, simplifyWorkResult, optimizationElementWithImage } from '../utils/work';
 import { CommonProject } from './common';
+import { BackgroundProject } from './background';
 
 const state = {
 	study: {
@@ -155,7 +157,16 @@ export const YKTProject = Project.create({
 				study();
 			}
 		}),
-		// TODO 作业
+		exam: new Script({
+			name: '📝 考试答题',
+			matches: [['长江雨课堂考试', /-exam\.yuketang\.cn\/exam/]],
+			configs: { notes: workNotes },
+			async oncomplete() {
+				commonWork(this, {
+					workerProvider: (opt) => workOrExam('exam', opt)
+				});
+			}
+		}),
 		'font-decrypt': new Script({
 			name: '🔤 字体解密',
 			matches: [['AI伴学自测界面', '/v2/web/iframe-self-test']],
@@ -179,6 +190,134 @@ export const YKTProject = Project.create({
 		})
 	}
 });
+
+function getQuestionType(
+	val: string
+): 'single' | 'multiple' | 'judgement' | 'completion' | undefined {
+	return val.includes('单选题')
+		? 'single'
+		: val.includes('多选题')
+		? 'multiple'
+		: val.includes('判断题')
+		? 'judgement'
+		: ['主观题', '简答题', '填空题', '名词解释', '论述题', '计算题', '其他题'].some((t) => val.includes(t))
+		? 'completion'
+		: undefined;
+}
+
+function getOptionText(option: HTMLElement) {
+	const textEl = option.querySelector('.radioText, .checkboxText');
+	const labelEl = option.querySelector('.radioInput, .checkboxInput');
+	const text = textEl?.textContent?.trim() || option.textContent?.trim() || '';
+	const label = labelEl?.textContent?.trim()?.charAt(0);
+	return label && text ? `${label}. ${text}` : text || option.innerText.trim();
+}
+
+function workOrExam(
+	type: 'work' | 'exam',
+	{ answererWrappers, period, thread, answerSeparators, answerMatchMode }: CommonWorkOptions
+) {
+	$message.info(`开始${type === 'work' ? '作业' : '考试'}`);
+	CommonProject.scripts.workResults.methods.init({
+		questionPositionSyncHandlerType: 'yuketang'
+	});
+
+	const titleTransform = (titles: (HTMLElement | undefined)[]) => {
+		return titles
+			.filter((t) => t?.innerText)
+			.map((t) => t?.innerText.replace(/\s+/g, ' ').trim())
+			.join(',');
+	};
+
+	const worker = new OCSWorker({
+		root: '.subject-item',
+		elements: {
+			title: '.item-body h4.exam-font, .item-body > h4',
+			options: '.list-unstyled-radio li label.el-radio, .list-unstyled-checkbox li label.el-checkbox',
+			type: '.item-type'
+		},
+		thread: thread ?? 1,
+		answerSeparators: answerSeparators.split(',').map((s) => s.trim()),
+		answerMatchMode: answerMatchMode,
+		answerer: (elements, ctx) => {
+			const title = titleTransform(elements.title);
+			if (title) {
+				const typeText = elements.type[0]?.innerText || '';
+				return CommonProject.scripts.apps.methods.searchAnswerInCaches(title, async () => {
+					await $.sleep((period ?? 3) * 1000);
+					return defaultAnswerWrapperHandler(answererWrappers, {
+						type: getQuestionType(typeText) || ctx.type || 'unknown',
+						title,
+						options: ctx.elements.options.map((o) => getOptionText(o)).join('\n')
+					});
+				});
+			} else {
+				throw new Error('题目为空，请查看题目是否为空，或者忽略此题');
+			}
+		},
+		work: async (ctx) => {
+			const { elements, searchInfos, root } = ctx;
+			const typeText = elements.type[0]?.innerText || '';
+			const questionType = getQuestionType(typeText);
+
+			if (
+				questionType &&
+				(questionType === 'single' || questionType === 'multiple' || questionType === 'judgement') &&
+				elements.options.length > 0
+			) {
+				const resolver = createDefaultQuestionResolver(ctx)[questionType];
+				return await resolver(
+					searchInfos,
+					elements.options.map((option) => optimizationElementWithImage(option)),
+					async (type, answer, option) => {
+						if (type === 'judgement' || type === 'single' || type === 'multiple') {
+							const input = option.querySelector('input');
+							if (input && !(input as HTMLInputElement).checked) {
+								option.click();
+								await $.sleep(300);
+							}
+						}
+					}
+				);
+			}
+
+			if (questionType === 'completion') {
+				const answer = searchInfos
+					.flatMap((info) => info.results.map((res) => res.answer))
+					.find((ans) => ans?.trim());
+				if (answer?.trim()) {
+					const iframe = root.querySelector<HTMLIFrameElement>('.ueditor-content iframe, .item-body iframe');
+					if (iframe?.contentDocument?.body) {
+						iframe.contentDocument.body.innerHTML = answer.includes('<') ? answer : `<p>${answer.trim()}</p>`;
+						return { finish: true };
+					}
+				}
+			}
+
+			return { finish: false };
+		},
+		onResultsUpdate(curr, _, res) {
+			CommonProject.scripts.workResults.methods.setResults(simplifyWorkResult(res, titleTransform));
+
+			if (curr.result?.finish) {
+				CommonProject.scripts.apps.methods.addQuestionCacheFromWorkResult(simplifyWorkResult([curr], titleTransform));
+			}
+			CommonProject.scripts.workResults.methods.updateWorkStateByResults(res);
+		}
+	});
+
+	worker
+		.doWork({ enable_debug: BackgroundProject.scripts.dev.cfg.enable_answerer_debug })
+		.then(() => {
+			$message.info({ content: '考试完成，请自行检查后保存或提交。', duration: 0 });
+			worker.emit('done');
+		})
+		.catch((err) => {
+			$message.error({ content: `考试失败: ${err}`, duration: 0 });
+		});
+
+	return worker;
+}
 
 async function loadFontMapping() {
 	try {
